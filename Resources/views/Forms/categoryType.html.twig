@@ -1,0 +1,31 @@
+{{ form_start(form) }}
+    {#{{ form_widget(form) }}#}
+    {{ form_row(form.name) }}
+    {{ form_row(form.description) }}
+    {{ form_label(form.readRoles) }}
+    <ul id="read-roles-fields-list" data-prototype="{{ form_widget(form.readRoles.vars.prototype)|e }}">
+    {% for readRolesFields in form.readRoles %}
+        <li class="role">
+        {{ form_errors(readRolesFields) }}
+        {{ form_row(readRolesFields) }}
+        <button class="tiny button" id="read-role-bt-{{ readRolesFields.vars.name }}">Delete Role</button>
+        </li>
+    {% endfor %}
+        <li><a href="#" id="add-another-read-role">Add read role</a></li>
+    </ul>
+    {{ form_label(form.writeRoles) }}
+    <ul id="write-roles-fields-list" data-prototype="{{ form_widget(form.writeRoles.vars.prototype)|e }}">
+    {% for writeRolesFields in form.writeRoles %}
+        <li class="role">
+        {{ form_errors(writeRolesFields) }}
+        {{ form_row(writeRolesFields) }}
+        <button class="tiny button" id="write-role-bt-{{ writeRolesFields.vars.name }}">Delete Role</button>
+         </li>
+    {% endfor %}
+       <li><a href="#" id="add-another-write-role">Add write role</a></li>
+    </ul>
+            
+    {{ form_row(form.position) }}
+            
+    <input type="submit" class="button" value="Submit"/>
+{{ form_end(form) }}

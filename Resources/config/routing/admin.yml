@@ -1,0 +1,60 @@
+incolab_forum_admin_homepage:
+    path: /
+    defaults: { _controller: IncolabForumBundle:Admin:index }
+
+#Categories
+incolab_forum_admin_parent_category_add:
+    path: /categories/add_parent
+    defaults: { _controller: IncolabForumBundle:Admin:parentCategoryAdd }
+    methods: [POST]
+
+incolab_forum_admin_parent_category_modify:
+    path: /categories/modify_parent/{slug}
+    defaults: { _controller: IncolabForumBundle:Admin:parentCategoryModify }
+    requirements:
+        slug: "[A-z0-9_-]+"
+#  methods: [POST]
+
+incolab_forum_admin_child_category_add:
+    path: /categories/{slugParent}/add_child
+    defaults: { _controller: IncolabForumBundle:Admin:childCategoryAdd }
+    requirements:
+        slugParent: "[A-z0-9_-]+"
+
+incolab_forum_admin_child_category_modify:
+    path: /categories/modify_parent/{parentSlug}/{slug}
+    defaults: { _controller: IncolabForumBundle:Admin:childCategoryModify }
+    requirements:
+        parentSlug: "[A-z0-9_-]+"
+        slug: "[A-z0-9_-]+"
+#  methods: [POST]
+
+#Topics
+incolab_forum_topic_delete:
+    path: /categories/{parentCatSlug}/{catSlug}/delete/{slug}
+    defaults: { _controller: IncolabForumBundle:Admin:topicDelete }
+    requirements:
+        parentCatSlug: "[A-z0-9_-]+"
+        catSlug: "[A-z0-9_-]+"
+        slug: "[A-z0-9_-]+"
+
+# Posts
+incolab_forum_topic_delete:
+    path: /categories/{parentCatSlug}/{catSlug}/{slug}/delete/{id}
+    defaults: { _controller: IncolabForumBundle:Admin:postDelete }
+    requirements:
+        parentCatSlug: "[A-z0-9_-]+"
+        catSlug: "[A-z0-9_-]+"
+        slug: "[A-z0-9_-]+"
+        id: "[0-9]+"
+        
+# ForumRoles
+incolab_forum_role_add:
+    path: /roles/add
+    defaults: { _controller: IncolabForumBundle:Admin:roleAdd }
+    
+incolab_forum_rol_delete:
+    path: /roles/delete/{role}
+    defaults: { _controller: IncolabForumBundle:Admin:roleDelete }
+    requirements:
+        role: "[A-z0-9_-]+"

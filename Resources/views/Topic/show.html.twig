@@ -1,0 +1,89 @@
+{% extends 'IncolabForumBundle::layout.html.twig' %}
+
+{% block forum %}
+    <div class="large-12 columns">
+        <nav aria-label="You are here:" role="navigation">
+        <ul class="breadcrumbs">
+          <li><a href="{{ path('incolab_forum_homepage') }}">Accueil</a></li>
+          <li><a href="{{ path('incolab_forum_parentCategory_show', {slugParentCat: topic.category.parent.slug}) }}">{{ topic.category.parent.name }}</a></li>
+          <li><a href="{{ path('incolab_forum_category_show', {slugParentCat: topic.category.parent.slug, slugCat: topic.category.slug}) }}">{{ topic.category.name }}</a></li>
+          <li>
+            <span class="show-for-sr">Current: </span> {{ topic.subject }}
+          </li>
+        </ul>
+      </nav>
+    </div>
+    <div class="large-12 columns">
+        <div class="panelCat">
+            <div class="row">
+                <div class="large-12 columns">
+                    <h2 class="text-center">{{ topic.subject }}</h2>
+                </div>
+                <div class="large-2 columns text-center">
+                    {% if topic.author.avatar %}
+                    <img class="avatar_forum round_border" alt="avatar-{{ topic.author.username }}" width="64" height="64" src="/images/modules/Character/skins/{{ topic.author.avatar }}.png" />
+                    {% endif %}
+                    <p>{{ topic.author.username }}</p>
+                </div>
+                <div class="large-10 columns message_post">
+                    <p>Posted {{ topic.firstPost.createdAt|date('d-m-Y \\a\\t H:i') }}</p>
+                    <p>{{ topic.firstPost.message|raw }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+        {% for element in topic.replies %}
+            {% if element.id != topic.firstPost.id %}
+                {% if loop.index == 2 %}
+    <div class="large-12 columns">
+        <div class="panelCat">
+                {% endif %}
+            <div id="{{ element.id }}" class="row">
+                <div class="large-2 columns text-center">
+                    {% if element.author.avatar %}
+                    <img class="avatar_forum round_border" alt="avatar-{{ element.author.username }}" width="64" height="64" src="/images/modules/Character/skins/{{ element.author.avatar }}.png" />
+                    {% endif %}
+                    <p>{{ element.author.username }}</p>
+                </div>
+                <div class="large-10 columns message_post">
+                    <p>Posted {{ element.createdAt|date('d-m-Y \\a\\t H:i') }}
+                        {% if element.updatedAt %}
+                            | Edited {{ element.updatedAt|date('d-m-Y \\a\\t H:i') }}
+                        {% endif %}
+                    </p>
+                    <p>{{ element.message|raw }}</p>
+                    {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+                        {% if app.user.username == element.author.username %}
+                    <p><a class="button" href="{{ path('incolab_forum_post_edit', {slugParentCat: topic.category.parent.slug, slugCat: topic.category.slug, slugTopic: topic.slug, postId: element.id}) }}">Edit</a></p>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            <hr />
+                {% if loop.last and loop.index > 1 %}
+        </div>
+    </div>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+    <div class="large-12 columns">
+        <div class="panelCat">
+            <h3 class="text-center">Add a reply</h3>
+            {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+                {{ form_start(postForm) }}
+                {{ form_widget(postForm) }}
+                <input type="submit" class="button" value="Submit"/>
+                {{ form_end(postForm) }}
+            {% else %}
+                <p>You have to be connected for add a post. <a href="{{ path('fos_user_security_login') }}">Click here</a></p>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+        <script src="/bundles/incolabcore/ckeditor/light/ckeditor.js"></script>
+        <script>CKEDITOR.replace( 'post_message' );</script>
+    {% endif %}
+{% endblock %}

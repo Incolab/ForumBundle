@@ -1,0 +1,61 @@
+{% extends 'IncolabForumBundle::layout.html.twig' %}
+
+{% block forum %}
+    <div class="large-12 columns">
+        <nav aria-label="You are here:" role="navigation">
+        <ul class="breadcrumbs">
+          <li><a href="{{ path('incolab_forum_homepage') }}">Accueil</a></li>
+          <li>
+            <span class="show-for-sr">Current: </span> {{ parentCategory.name }}
+          </li>
+        </ul>
+      </nav>
+    </div>
+    <div class="large-12 columns">
+        <h2 class="text-center">{{ parentCategory.name }}</h2>
+    </div>
+    {% if parentCategory.childs is not empty %}
+        {% for element in parentCategory.childs %}
+    <div class="large-12 columns">
+        <div class="panelCat">
+            <div class="row">
+                <div class="large-10 medium-10 columns">
+                    <h4 class="#"><a href="{{ path('incolab_forum_category_show', {'slugParentCat': parentCategory.slug, 'slugCat': element.slug}) }}">{{ element.name }}</a></h4>
+                    <p>{{ element.description }}</p>
+                </div>
+                <div class="large-2 medium-2 columns text-center">
+                    <p>Sujets:<br/>
+                    {{ element.numtopics }}</p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="large-6 columns">
+                    <p>Last Topic: 
+                {% if element.lastTopic is not empty %}
+                        <a href="{{ path('incolab_forum_topic_show', {'slugParentCat': parentCategory.slug, 'slugCat': element.slug, 'slugTopic': element.lastTopic.slug}) }}">{{ element.lastTopic.subject }}</a> by {{ element.lastTopic.author.username }} <br/> {{ element.lastTopic.createdAt|date('d-m-y \\a\\t H:i') }}
+                {% else %}
+                        <em>No Topic at the moment</em>
+                {% endif %}
+                    </p>
+                </div>
+                <div class="large-6 columns">
+                    <p>Last Post: 
+                {% if element.lastPost is not empty %}
+                        <a href="{{ path('incolab_forum_topic_show', {'slugParentCat': parentCategory.slug, 'slugCat': element.slug, 'slugTopic': element.lastTopic.slug}) }}#{{ element.lastPost.id }}">{{ element.lastTopic.subject }}</a> by {{ element.lastPost.author.username }} <br/> {{ element.lastPost.createdAt|date('d-m-y \\a\\t H:i') }}
+                {% else %}
+                        <em>No posts at the moment</em>
+                {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+        {% endfor %}
+    {% else %}
+    <div class="large-12 columns">
+        <div class="panelCat">
+            <h5>No Sub-category to display.</h5>
+        </div>
+    </div>
+    {% endif %}
+{% endblock %}

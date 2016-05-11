@@ -1,0 +1,28 @@
+{% extends 'IncolabForumBundle::layout.html.twig' %}
+
+{% block body %}
+    <div class="row">
+        <div class="large-12 columns">
+            <h1 class="text-center">Edition de post</h1>
+        </div>
+        <div class="large-6 columns">
+            <h2 class="text-center">Votre message</h2>
+            {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+                {{ form_start(postForm) }}
+                {{ form_widget(postForm) }}
+                <input type="submit" class="button" value="Submit" />
+                {{ form_end(postForm) }}
+            {% endif %}
+        </div>
+        <div class="large-6 columns">
+            
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+        <script src="/bundles/incolabcore/ckeditor/light/ckeditor.js"></script>
+        <script>CKEDITOR.replace( 'post_message' );</script>
+    {% endif %}
+{% endblock %}

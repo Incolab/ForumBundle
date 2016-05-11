@@ -1,0 +1,50 @@
+{% extends 'IncolabForumBundle::layout.html.twig' %}
+
+{% block forum %}
+    {% if categories is not empty %}
+        {% for element in categories %}
+    <div class="large-12 columns">
+        <div class="cadre_parentC_forum">
+            <h3 class="text-center"><a href="{{ path('incolab_forum_admin_parent_category_modify', {'slug': element.slug }) }}">{{ element.name }}</a> | <a href="">Supprimer la catégorie</a></h3>
+            <p>{{ element.description }}</p>
+        </div>
+        <div class="cat_forum">
+            <div class="row">
+                {% for subcat in element.childs %}
+                <div class="large-12 medium-12 columns">
+                    <h4><a href="{{ path('incolab_forum_admin_child_category_modify', {'parentSlug': element.slug, 'slug': subcat.slug }) }}">{{ subcat.name }}</a></h4>
+                    <p>{{ subcat.description }}</p>
+                    <hr/>
+                </div>
+                {% endfor %}
+                    
+                <div class="large-12 medium-12 columns">
+                    <h4><a href="{{ path('incolab_forum_admin_child_category_add', {'slugParent': element.slug }) }}">Ajouter une sous catégorie.</a></h4>
+                </div>
+            </div>
+        </div>
+    </div>
+        {% endfor %}
+    {% else %}
+    <div class="large-12 columns">
+        <h4>No parent category at the moment.</h4>
+    </div>
+    {% endif %}
+    <div class="large-12 columns">
+        <div class="cadre_parentC_forum">
+            <h4 class="text-center">Add a parent Category</h4>
+        </div>
+        <div class="cat_forum">
+            {% include "IncolabForumBundle:Forms:categoryType.html.twig" with {'form': parentCatForm} %}
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block javascripts %}
+    <script type="text/javascript">
+        var readRolesCount = '{{ parentCatForm.readRoles|length }}';
+        var writeRolesCount = '{{ parentCatForm.writeRoles|length }}';
+    </script>
+    <script type="text/javascript" src="/bundles/incolabforum/js/categoryType.js"></script>
+{% endblock javascripts %}
