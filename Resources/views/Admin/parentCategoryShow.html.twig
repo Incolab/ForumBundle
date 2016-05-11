@@ -1,0 +1,42 @@
+{% extends 'IncolabForumBundle::layout.html.twig' %}
+
+{% block forum %}
+    <div class="large-12 columns">
+        <h2 class="text-center">{{ parentCategory.name }}</h2>
+    </div>
+    {% if categories is not empty %}
+        {% for element in categories %}
+    <div class="large-12 columns">
+        <div class="panelCat">
+            <div class="row">
+                <div class="large-10 medium-10 columns">
+                    <h4 class="#"><a href="{{ path('incolab_forum_category_show', {'slugParentCat': parentCategory.slug, 'slugCat': element.slug}) }}">{{ element.name }}</a></h4>
+                    <p>{{ element.description }}</p>
+                </div>
+                <div class="large-2 medium-2 columns text-center">
+                    <p>Sujets:<br/>
+                    {{ element.numtopics }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+        {% endfor %}
+    {% else %}
+    <div class="large-12 columns">
+        <div class="panelCat">
+            <h5>No Sub-category to display.</h5>
+        </div>
+    </div>
+    {% endif %}
+    <div class="large-12 columns">
+        <div class="panelCat">
+            <h4 class="text-center">Add a parent Category</h4>
+        </div>
+        <div class="cat_forum">    
+            {{ form_start(catForm) }}
+            {{ form_widget(catForm) }}
+            <input type="submit" class="button" value="Submit"/>
+            {{ form_end(catForm) }}
+        </div>
+    </div>
+{% endblock %}

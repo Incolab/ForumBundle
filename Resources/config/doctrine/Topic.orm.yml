@@ -1,0 +1,52 @@
+Incolab\ForumBundle\Entity\Topic:
+    type: entity
+    table: forum_topic
+    repositoryClass: Incolab\ForumBundle\Repository\TopicRepository
+    id:
+        id:
+            type: integer
+            id: true
+            generator:
+                strategy: AUTO
+    fields:
+        subject:
+            type: string
+            length: 255
+        slug:
+            type: string
+            length: 255
+            unique: true
+        numViews:
+            type: integer
+        numPosts:
+            type: integer
+        isClosed:
+            type: boolean
+        isPinned:
+            type: boolean
+        isBuried:
+            type: boolean
+        createdAt:
+            type: datetime
+        pulledAt:
+            type: datetime
+            nullable: true
+    oneToOne:
+        firstPost:
+            targetEntity: Incolab\ForumBundle\Entity\Post
+            cascade: ["persist"]
+        lastPost:
+            targetEntity: Incolab\ForumBundle\Entity\Post
+            cascade: ["persist"]
+    oneToMany:
+        replies:
+            targetEntity: Incolab\ForumBundle\Entity\Post
+            mappedBy: topic
+    manyToOne:
+        author:
+            targetEntity: AppBundle\Entity\User
+        category:
+            targetEntity: Incolab\ForumBundle\Entity\Category
+            cascade: ["persist"]
+            inversedBy: topics
+    lifecycleCallbacks: {  }

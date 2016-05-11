@@ -1,0 +1,21 @@
+services:
+    incolab_forum.category_manager:
+        class: Incolab\ForumBundle\Model\CategoryManager
+        arguments:
+            Transliterator: "@incolab_core.transliterator"
+            entityManager: "@doctrine.orm.entity_manager"
+            
+    incolab_forum.topic_manager:
+        class: Incolab\ForumBundle\Model\TopicManager
+        arguments:
+            Transliterator: "@incolab_core.transliterator"
+            entityManager: "@doctrine.orm.entity_manager"
+            
+    incolab_forum.post_manager:
+        class: Incolab\ForumBundle\Model\PostManager
+        arguments:
+            entityManager: "@doctrine.orm.entity_manager"
+            
+#    incolab_forum.example:
+#        class: Incolab\ForumBundle\Example
+#        arguments: ["@service_id", "plain_value", %parameter%]

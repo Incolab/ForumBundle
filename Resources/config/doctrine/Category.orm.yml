@@ -1,0 +1,51 @@
+Incolab\ForumBundle\Entity\Category:
+    type: entity
+    table: forum_category
+    repositoryClass: Incolab\ForumBundle\Repository\CategoryRepository
+    id:
+        id:
+            type: integer
+            id: true
+            generator:
+                strategy: AUTO
+    fields:
+        name:
+            type: string
+            length: 255
+        description:
+            type: text
+        slug:
+            type: string
+            length: 255
+            unique: true
+        position:
+            type: integer
+        numTopics:
+            type: integer
+        numPosts:
+            type: integer
+    oneToMany:
+        childs:
+            targetEntity: Incolab\ForumBundle\Entity\Category
+            mappedBy: parent
+        topics:
+            targetEntity: Incolab\ForumBundle\Entity\Topic
+            mappedBy: category
+    manyToOne:
+        parent:
+            targetEntity: Incolab\ForumBundle\Entity\Category
+            inversedBy: childs
+        lastTopic:
+            targetEntity: Incolab\ForumBundle\Entity\Topic
+        lastPost:
+            targetEntity: Incolab\ForumBundle\Entity\Post
+    manyToMany:
+        readRoles:
+            targetEntity: Incolab\ForumBundle\Entity\ForumRole
+            joinTable:
+                name: forum_category_read_roles
+        writeRoles:
+            targetEntity: Incolab\ForumBundle\Entity\ForumRole
+            joinTable:
+                name: forum_category_write_roles
+    lifecycleCallbacks: {  }

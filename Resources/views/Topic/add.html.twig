@@ -1,0 +1,22 @@
+{% extends 'IncolabForumBundle::layout.html.twig' %}
+{% block forum %}
+    <div class="large-12 columns">
+        <div class="cadre_parentC_forum">
+            <h2 class="text-center">Add a Topic</h2>
+            <p class="text-center"> You confirm you post in the category: {{ parentCat.name }} / {{ parentCat.childs[0].name }}</p>
+        </div>
+        <div class="cat_forum">    
+            {{ form_start(childCatForm) }}
+            {{ form_widget(childCatForm) }}
+            <input type="submit" class="button" value="Submit"/>
+            {{ form_end(childCatForm) }}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+        <script src="/bundles/incolabcore/ckeditor/light/ckeditor.js"></script>
+        <script>CKEDITOR.replace( 'topic_firstPost_message' );</script>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends 'IncolabForumBundle::layout.html.twig' %}
+{% block forum %}
+    <div class="large-12 columns">
+        <div class="cadre_parentC_forum">
+            <h2 class="text-center">Modify a parent Category</h2>
+        </div>
+        <div class="cat_forum">
+            {% include "IncolabForumBundle:Forms:categoryType.html.twig" with {'form': catForm} %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script type="text/javascript">
+        var readRolesCount = '{{ catForm.readRoles|length }}';
+        var writeRolesCount = '{{ catForm.writeRoles|length }}';
+    </script>
+    <script type="text/javascript" src="/bundles/incolabforum/js/categoryType.js"></script>
+{% endblock javascripts %}

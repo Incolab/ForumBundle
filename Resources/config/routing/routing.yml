@@ -1,0 +1,58 @@
+incolab_forum_homepage:
+    path:     /
+    defaults: { _controller: IncolabForumBundle:Default:index }
+
+incolab_forum_parentCategory_show:
+    path: /{slugParentCat}.html
+    defaults: { _controller: IncolabForumBundle:Category:parentCategory }
+    requirements:
+        slugParentCat: "[A-z0-9_-]+"
+        
+incolab_forum_category_show:
+    path: /{slugParentCat}/{slugCat}.html
+    defaults: { _controller: IncolabForumBundle:Category:category }
+    requirements:
+        slugParentCat: "[A-z0-9_-]+"
+        slugCat: "[A-z0-9_-]+"
+        
+incolab_forum_category_topic_new:
+    path: /{slugParentCat}/{slugCat}/topic/new
+    defaults: { _controller: IncolabForumBundle:Category:topicNew }
+    methods: [GET]
+    requirements:
+        slugParentCat: "[A-z0-9_-]+"
+        slugCat: "[A-z0-9_-]+"
+        
+incolab_forum_category_topic_create:
+    path: /{slugParentCat}/{slugCat}/topic/new
+    defaults: { _controller: IncolabForumBundle:Category:topicCreate }
+    methods: [POST]
+    requirements:
+        slugParentCat: "[A-z0-9_-]+"
+        slugCat: "[A-z0-9_-]+"
+        
+incolab_forum_topic_show:
+    path: /{slugParentCat}/{slugCat}/{slugTopic}.html
+    defaults: { _controller: IncolabForumBundle:Category:topicShow }
+    requirements:
+        slugParentCat: "[A-z0-9_-]+"
+        slugCat: "[A-z0-9_-]+"
+        slugTopic: "[A-z0-9_-]+"
+        
+incolab_forum_post_create:
+    path: /{slugParentCat}/{slugCat}/{slugTopic}/post
+    defaults: { _controller: IncolabForumBundle:Category:postAdd }
+    methods: [POST]
+    requirements:
+        slugParentCat: "[A-z0-9_-]+"
+        slugCat: "[A-z0-9_-]+"
+        slugTopic: "[A-z0-9_-]+"
+
+incolab_forum_post_edit:
+    path: /{slugParentCat}/{slugCat}/{slugTopic}/post-{postId}/edit
+    defaults: { _controller: IncolabForumBundle:Post:postEdit }
+    requirements:
+        slugParentCat: "[A-z0-9_-]+"
+        slugCat: "[A-z0-9_-]+"
+        slugTopic: "[A-z0-9_-]+"
+        postId: \d+

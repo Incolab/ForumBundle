@@ -1,0 +1,73 @@
+{% extends 'IncolabForumBundle::layout.html.twig' %}
+
+{% block forum %}
+    <div class="large-12 columns">
+        <nav aria-label="You are here:" role="navigation">
+        <ul class="breadcrumbs">
+          <li><a href="{{ path('incolab_forum_homepage') }}">Accueil</a></li>
+          <li><a href="{{ path('incolab_forum_parentCategory_show', {slugParentCat: category.parent.slug}) }}">{{ category.parent.name }}</a></li>
+          <li>
+            <span class="show-for-sr">Current: </span> {{ category.name }}
+          </li>
+        </ul>
+      </nav>
+    </div>
+    <div class="large-12 columns">   
+        <h2 class="text-center">{{ category.name }}</h2>
+    </div>
+        {% if topics is not empty %}
+            {% for element in topics %}
+    <div class="large-12 columns">
+        <div class="panelCat">
+            <div class="row">
+                <div class="large-10 medium-10 columns">
+                    <h5><a href="{{ path('incolab_forum_topic_show', {'slugParentCat': category.parent.slug, 'slugCat': category.slug, 'slugTopic': element.slug }) }}">{{ element.subject }}</a></h5>
+                    <p>Posted {{ element.createdAt|date('d-m-y \\a\\t H:i') }} by <em>{{ element.author.username }}</em></p>
+                    <p>Last Post: 
+                {% if element.lastPost is not empty %}
+                        <a href="{{ path('incolab_forum_topic_show', {'slugParentCat': category.parent.slug, 'slugCat': category.slug, 'slugTopic': element.slug}) }}#{{ element.lastPost.id }}">{{ element.subject }}</a> by {{ element.lastPost.author.username }} | {{ element.lastPost.createdAt|date('d-m-y \\a\\t H:i') }}
+                {% else %}
+                        <em>No posts at the moment</em>
+                {% endif %}
+                    </p>
+                </div>
+                <div class="large-2 medium-2 columns text-center">
+                    <p>Posts:<br/>
+                    {{ element.numPosts }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+            {% endfor %}
+        {% else %}
+    <div class="large-12 columns">
+        <div class="panelCat">
+            <div class="row">
+                <div class="large-10 medium-10 columns">
+                    <h5>No topics to display at the moment.</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+        {% endif %}
+    <div class="large-12 columns">
+        <div class="panelCat">
+            <h3 class="text-center">Add a topic</h3>
+            {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+                {{ form_start(topicForm) }}
+                {{ form_widget(topicForm) }}
+                <input type="submit" class="button" value="Submit"/>
+                {{ form_end(topicForm) }}
+            {% else %}
+                <p>You have to be connected for add a topic. <a href="{{ path('fos_user_security_login') }}">Click here</a></p>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+        <script src="/ckeditor/light/ckeditor.js"></script>
+        <script>CKEDITOR.replace( 'topic_firstPost_message' );</script>
+    {% endif %}
+{% endblock %}

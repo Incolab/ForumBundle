@@ -1,0 +1,28 @@
+Incolab\ForumBundle\Entity\Post:
+    type: entity
+    table: forum_post
+    repositoryClass: Incolab\ForumBundle\Repository\PostRepository
+    id:
+        id:
+            type: integer
+            id: true
+            generator:
+                strategy: AUTO
+    fields:
+        message:
+            type: text
+        createdAt:
+            type: datetime
+            column: createdat
+        updatedAt:
+            type: datetime
+            column: updatedat
+            nullable: true
+    manyToOne:
+        topic:
+            targetEntity: Incolab\ForumBundle\Entity\Topic
+            cascade: ["persist"]
+            inversedBy: replies
+        author:
+            targetEntity: AppBundle\Entity\User
+    lifecycleCallbacks: {  }

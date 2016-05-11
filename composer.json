@@ -1,0 +1,31 @@
+{
+    "name": "incolab/forum-bundle",
+    "type": "symfony-bundle",
+    "description": "Simple Forum Bundle for Symfony3",
+    "keywords": ["forum", "bundle"],
+    "homepage": "https://github.com/Incolab/ForumBundle",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "David Salbei",
+            "email": "david@chalvia.fr"
+        },
+        {
+            "name": "Incolab Community",
+            "homepage": "http://incolab.fr"
+        }
+    ],
+    "require": {
+        "php": ">=5.5.9",
+        "symfony/framework-bundle": "~2.8|~3.0",
+        "incolab/core-bundle": "dev-master"
+    },
+    "autoload": {
+        "psr-4": { "Incolab\\ForumBundle\\": "" }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.1-dev"
+        }
+    }
+}
