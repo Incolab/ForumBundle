@@ -44,7 +44,7 @@ Incolab\ForumBundle\Entity\Topic:
             mappedBy: topic
     manyToOne:
         author:
-            targetEntity: AppBundle\Entity\User
+            targetEntity: UserBundle\Entity\User
         category:
             targetEntity: Incolab\ForumBundle\Entity\Category
             cascade: ["persist"]

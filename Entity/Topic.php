@@ -26,7 +26,7 @@ class Topic
     private $subject;
 
     /**
-     * @var int
+     * @var \stdClass
      */
     private $author;
 
@@ -137,15 +137,15 @@ class Topic
     {
         return $this->subject;
     }
-
+    
     /**
      * Set author
      *
-     * @param integer $author
+     * @param \UserBundle\Entity\User $author
      *
      * @return Topic
      */
-    public function setAuthor($author)
+    public function setAuthor(\UserBundle\Entity\User $author = null)
     {
         $this->author = $author;
 
@@ -155,13 +155,13 @@ class Topic
     /**
      * Get author
      *
-     * @return integer
+     * @return \UserBundle\Entity\User
      */
     public function getAuthor()
     {
         return $this->author;
     }
-
+    
     /**
      * Set slug
      *
@@ -475,4 +475,77 @@ class Topic
     {
         return $this->replies;
     }
+
+    /**
+     * Set isClosed
+     *
+     * @param boolean $isClosed
+     *
+     * @return Topic
+     */
+    public function setIsClosed($isClosed)
+    {
+        $this->isClosed = $isClosed;
+
+        return $this;
+    }
+
+    /**
+     * Get isClosed
+     *
+     * @return boolean
+     */
+    public function getIsClosed()
+    {
+        return $this->isClosed;
+    }
+
+    /**
+     * Set isPinned
+     *
+     * @param boolean $isPinned
+     *
+     * @return Topic
+     */
+    public function setIsPinned($isPinned)
+    {
+        $this->isPinned = $isPinned;
+
+        return $this;
+    }
+
+    /**
+     * Get isPinned
+     *
+     * @return boolean
+     */
+    public function getIsPinned()
+    {
+        return $this->isPinned;
+    }
+
+    /**
+     * Set isBuried
+     *
+     * @param boolean $isBuried
+     *
+     * @return Topic
+     */
+    public function setIsBuried($isBuried)
+    {
+        $this->isBuried = $isBuried;
+
+        return $this;
+    }
+
+    /**
+     * Get isBuried
+     *
+     * @return boolean
+     */
+    public function getIsBuried()
+    {
+        return $this->isBuried;
+    }
+
 }

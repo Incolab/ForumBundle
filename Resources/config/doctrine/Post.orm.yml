@@ -24,5 +24,6 @@ Incolab\ForumBundle\Entity\Post:
             cascade: ["persist"]
             inversedBy: replies
         author:
-            targetEntity: AppBundle\Entity\User
+            targetEntity: UserBundle\Entity\User
+            
     lifecycleCallbacks: {  }

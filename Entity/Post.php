@@ -162,11 +162,11 @@ class Post
     /**
      * Set author
      *
-     * @param \AppBundle\Entity\User $author
+     * @param \UserBundle\Entity\User $author
      *
      * @return Post
      */
-    public function setAuthor(\AppBundle\Entity\User $author = null)
+    public function setAuthor(\UserBundle\Entity\User $author = null)
     {
         $this->author = $author;
 
@@ -176,7 +176,7 @@ class Post
     /**
      * Get author
      *
-     * @return \AppBundle\Entity\User
+     * @return \UserBundle\Entity\User
      */
     public function getAuthor()
     {
