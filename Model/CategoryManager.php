@@ -48,7 +48,7 @@ class CategoryManager
         $this->entityManager = $entityManager;
     }
     
-    public function addParent(ArrayCollection $categories, Category $category)
+    public function addParent($categories, Category $category)
     {
         $category->setParent(null);
         $category->setSlug($this->transliterator->urlize($category->getName()));
