@@ -61,7 +61,7 @@ class CategoryRepository extends \Doctrine\ORM\EntityRepository
         $childwhere = $childwhere.") ";
             
         $strQuery = self::$strIndexQuery.$parentwhere.$childwhere;
-            
+        
         $strQuery = $strQuery . "ORDER BY c.position ASC, ch.position ASC";
         $query = $this->_em->createQuery($strQuery)->setParameters($parameters);
             
