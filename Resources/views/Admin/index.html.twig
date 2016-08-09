@@ -59,13 +59,13 @@
         var docMtm_rr = new DocMTMType("docMtm_rr", "Read Roles", "read-roles-fields-list");
         docMtm_rr.init();
         {% for element in parentCatForm.readRoles %}
-            docMtm_rr.insert_mtm_element("{{ writeRolesFields.vars.name }}", "{{ form_row(element) }}", "{{ form_errors(element) }}");
+            docMtm_rr.insert_mtm_element("{{ element.vars.name }}", "{{ form_row(element) }}", "{{ form_errors(element) }}");
         {% endfor %}
         
         var docMtm_wr = new DocMTMType("docMtm_wr", "Write Roles", "write-roles-fields-list");
         docMtm_wr.init();
         {% for element in parentCatForm.writeRoles %}
-            docMtm_wr.insert_mtm_element("{{ writeRolesFields.vars.name }}", "{{ form_row(element) }}", "{{ form_errors(element) }}");
+            docMtm_wr.insert_mtm_element("{{ element.vars.name }}", "{{ form_row(element) }}", "{{ form_errors(element) }}");
         {% endfor %}
 
             /*

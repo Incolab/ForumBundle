@@ -3,7 +3,6 @@
 namespace Incolab\ForumBundle\Repository;
 
 use Doctrine\ORM\Tools\Pagination\Paginator;
-use Doctrine\ORM\PersistentCollection;
 
 /**
  * CategoryRepository
@@ -39,7 +38,7 @@ class CategoryRepository extends \Doctrine\ORM\EntityRepository {
             . "WHERE c.parent IS NULL "
             . "ORDER BY c.position ASC, ch.position ASC";
 
-    public function getIndex(PersistentCollection $roles) {
+    public function getIndex($roles = array()) {
         $strQuery = self::$strIndexQuery . "AND crr IN (:readRole) OR chrr IN (:chreadRole)";
 
         $strQuery = $strQuery . "ORDER BY c.position ASC, ch.position ASC";

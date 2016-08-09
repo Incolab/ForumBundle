@@ -2,60 +2,47 @@
 {% block forum %}
     <div class="row">
         <div class="large-12 columns">
-         <div class="cadre_parentC_forum text-center">
-            <h2>{{ category.name }}</h2>
-            <p>{{ category.description }}</p>
-         </div>
-         <div class="cat_forum">    
-            {% for element in category.childs %}
-                <h4><a href="{# {{ path('incolab_forum_admin_subcategory_add', {'slugParentCat': category.slug }) }} #}">{{ element.name }}</a></h4>
-                <p>{{ element.description }}</p>
-                <hr/>
-            {% endfor %}
-            
-            {% include "IncolabForumBundle:Forms:categoryType.html.twig" with {'form': childCatForm} %}
-        </div>
-        
-    </div>
-{% endblock %}
+            <div class="cadre_parentC_forum text-center">
+                <h2>{{ category.name }}</h2>
+                <p>{{ category.description }}</p>
+            </div>
+            <div class="cat_forum">
+                {% for element in category.childs %}
+                    <h4><a href="{# {{ path('incolab_forum_admin_subcategory_add', {'slugParentCat': category.slug }) }} #}">{{ element.name }}</a></h4>
+                    <p>{{ element.description }}</p>
+                    <hr/>
+                {% endfor %}
 
-{% block javascripts %}
-    <script type="text/javascript">
- 
-    var readRolesCount = '{{ childCatForm.readRoles|length }}';
-    var writeRolesCount = '{{ childCatForm.writeRoles|length }}';
- 
-    $(document).ready(function() {
-        $('#add-another-read-role').click(function(e) {
-            e.preventDefault();
- 
-            var rolesList = $('#read-roles-fields-list');
- 
-            // grab the prototype template
-            var newWidget = rolesList.attr('data-prototype');
- 
-            newWidget = newWidget.replace(/__name__/g, readRolesCount);
-            readRolesCount++;
- 
-            // create a new list element and add it to the list
-            var newLi = $('<li></li>').html(newWidget);
-            newLi.appendTo(rolesList);
-        });
- 
-        $('#add-another-write-role').click(function(e) {
-            e.preventDefault();
- 
-            var rolesList = $('#write-roles-fields-list');
- 
-            // grab the prototype template
-            var newWidget = rolesList.attr('data-prototype');
-            newWidget = newWidget.replace(/__name__/g, writeRolesCount);
-            writeRolesCount++;
- 
-            // create a new list element and add it to the list
-            var newLi = $('<li></li>').html(newWidget);
-            newLi.appendTo(rolesList);
-        });
-    });
-</script>
-{% endblock javascripts %}
+                {{ form_start(childCatForm) }}
+                {{ form_row(childCatForm.name) }}
+                {{ form_row(childCatForm.description) }}
+                {{ form_label(childCatForm.readRoles) }}
+                <ul id="read-roles-fields-list" data-prototype="{{ form_widget(childCatForm.readRoles.vars.prototype)|e }}">
+                </ul>
+                {{ form_label(childCatForm.writeRoles) }}
+                <ul id="write-roles-fields-list" data-prototype="{{ form_widget(childCatForm.writeRoles.vars.prototype)|e }}">
+                </ul>
+                {{ form_row(childCatForm.position) }}
+                <input type="submit" class="button" value="Submit"/>
+                {{ form_end(childCatForm) }}
+            </div>
+
+        </div>
+    {% endblock %}
+
+    {% block javascripts %}
+        <script type="text/javascript" src="/bundles/incolabforum/js/categoryType.js"></script>
+        <script type="text/javascript">
+            var docMtm_rr = new DocMTMType("docMtm_rr", "Read Roles", "read-roles-fields-list");
+            docMtm_rr.init();
+            {% for element in childCatForm.readRoles %}
+                docMtm_rr.insert_mtm_element("{{ element.vars.name }}", "{{ form_row(element) }}", "{{ form_errors(element) }}");
+            {% endfor %}
+
+                var docMtm_wr = new DocMTMType("docMtm_wr", "Write Roles", "write-roles-fields-list");
+                docMtm_wr.init();
+            {% for element in childCatForm.writeRoles %}
+                docMtm_wr.insert_mtm_element("{{ element.vars.name }}", "{{ form_row(element) }}", "{{ form_errors(element) }}");
+            {% endfor %}
+        </script>
+    {% endblock javascripts %}

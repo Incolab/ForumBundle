@@ -5,15 +5,42 @@
             <h2 class="text-center">Modify a parent Category</h2>
         </div>
         <div class="cat_forum">
-            {% include "IncolabForumBundle:Forms:categoryType.html.twig" with {'form': catForm} %}
+            {{ form_start(catForm) }}
+            {{ form_row(catForm.name) }}
+            {{ form_row(catForm.description) }}
+            {{ form_label(catForm.readRoles) }}
+            <ul id="read-roles-fields-list" data-prototype="{{ form_widget(catForm.readRoles.vars.prototype)|e }}">
+            </ul>
+            {{ form_label(catForm.writeRoles) }}
+            <ul id="write-roles-fields-list" data-prototype="{{ form_widget(catForm.writeRoles.vars.prototype)|e }}">
+            </ul>
+            {{ form_row(catForm.position) }}
+            <input type="submit" class="button" value="Submit"/>
+            {{ form_end(catForm) }}
+            
+            {# {% include "IncolabForumBundle:Forms:categoryType.html.twig" with {'form': catForm} %} #}
         </div>
     </div>
 {% endblock %}
 
 {% block javascripts %}
-    <script type="text/javascript">
-        var readRolesCount = '{{ catForm.readRoles|length }}';
-        var writeRolesCount = '{{ catForm.writeRoles|length }}';
-    </script>
     <script type="text/javascript" src="/bundles/incolabforum/js/categoryType.js"></script>
+    <script type="text/javascript">
+        var docMtm_rr = new DocMTMType("docMtm_rr", "Read Roles", "read-roles-fields-list");
+        docMtm_rr.init();
+        {% for element in catForm.readRoles %}
+            docMtm_rr.insert_mtm_element("{{ element.vars.name }}", "{{ form_row(element) }}", "{{ form_errors(element) }}");
+        {% endfor %}
+        
+        var docMtm_wr = new DocMTMType("docMtm_wr", "Write Roles", "write-roles-fields-list");
+        docMtm_wr.init();
+        {% for element in catForm.writeRoles %}
+            docMtm_wr.insert_mtm_element("{{ element.vars.name }}", "{{ form_row(element) }}", "{{ form_errors(element) }}");
+        {% endfor %}
+
+            /*
+             var readRolesCount = '{{ catForm.readRoles|length }}';
+             var writeRolesCount = '{{ catForm.writeRoles|length }}';
+             */
+    </script>
 {% endblock javascripts %}

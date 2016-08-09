@@ -64,12 +64,16 @@ DocMTMType.prototype.insert_mtm_element = function (name, row, err) {
     li.setAttribute("class", "role");
     
     if (typeof err !== "undefined") {
-        li.appendChild(this.htmlToElement(err));
+        var span = document.createElement("span");
+        span.innerHTML = err;
+        li.appendChild(span);
     }
     
     row = row.replace(/__name__/g, this.nb_items);
     this.nb_items++;
-    li.appendChild(this.htmlToElement(row));
+    var rowobject = this.htmlToElement(row);
+    console.log(row);
+    li.appendChild(rowobject);
     
     var btn = document.createElement("button");
     btn.setAttribute("class", "tiny button");
