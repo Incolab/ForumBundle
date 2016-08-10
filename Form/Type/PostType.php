@@ -34,7 +34,6 @@ class PostType extends AbstractType
                     // Before persist
                     function ($submittedContent) {
                         // delete all html tags autoclose tags and strip_tags argument
-                        dump($submittedContent);
                         $dom = new \DOMDocument();
                         $dom->loadHTML($submittedContent);
                         if (!$dom) {
