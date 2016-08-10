@@ -2,7 +2,7 @@
 
 namespace Incolab\ForumBundle\Repository;
 
-use AppBundle\Entity\User;
+use UserBundle\Entity\User;
 
 /**
  * PostRepository
