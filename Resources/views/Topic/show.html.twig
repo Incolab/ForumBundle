@@ -69,13 +69,15 @@
     <div class="large-12 columns">
         <div class="panelCat">
             <h3 class="text-center">Add a reply</h3>
-            {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+            {% if is_granted('IS_AUTHENTICATED_FULLY') and postForm is defined %}
                 {{ form_start(postForm) }}
                 {{ form_widget(postForm) }}
                 <input type="submit" class="button" value="Submit"/>
                 {{ form_end(postForm) }}
-            {% else %}
+            {% elseif not is_granted('IS_AUTHENTICATED_FULLY') %}
                 <p>You have to be connected for add a post. <a href="{{ path('fos_user_security_login') }}">Click here</a></p>
+            {% else %}
+                <p>You can't post in this topic</p>
             {% endif %}
         </div>
     </div>

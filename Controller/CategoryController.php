@@ -36,23 +36,36 @@ class CategoryController extends Controller {
     }
 
     public function categoryAction($slugParentCat, $slugCat) {
-        if ($this->get('security.authorization_checker')->isGranted('IS_AUTHENTICATED_FULLY')) {
-            $user = $this->get('security.token_storage')->getToken()->getUser();
-            if (!$user->getForumRoles()->isEmpty()) {
-                $readRoles = $user->getForumRoles();
-            }
-        }
-
-        if (!isset($readRoles)) {
-            $readRoles = $this->getDoctrine()
-                            ->getRepository('IncolabForumBundle:ForumRole')->findByName('ROLE_PUBLIC');
-        }
-
         $category = $this->getDoctrine()->getrepository('IncolabForumBundle:Category')
                 ->getCategoryBySlugAndParentSlug($slugCat, $slugParentCat);
 
         if ($category === null) {
             throw $this->createNotFoundException('Aucune Catégorie pour cette adresse.');
+        }
+        
+        if (!$this->get('security.authorization_checker')->isGranted('IS_AUTHENTICATED_FULLY')) {
+            $role = $this->getDoctrine()
+                            ->getRepository('IncolabForumBundle:ForumRole')->findOneByName('ROLE_PUBLIC');
+
+            if (!$category->hasReadRole($role)) {
+                throw $this->createAccessDeniedException("Permission denied");
+            }
+            
+            return $this->render(
+                            'IncolabForumBundle:Category:category.html.twig', array(
+                        'category' => $category,
+                        'topics' => $category->getTopics(),
+                            )
+            );
+        }
+
+        if (!$this->userCanPostToChild($this->getUser()->getForumRoles(), $category->getParent(), $category->getSlug())) {
+            return $this->render(
+                            'IncolabForumBundle:Category:category.html.twig', array(
+                        'category' => $category,
+                        'topics' => $category->getTopics(),
+                            )
+            );
         }
 
         $form = $this->createForm(
@@ -80,6 +93,30 @@ class CategoryController extends Controller {
         if ($topic === null) {
             throw $this->createNotFoundException('This topic don\'t exists');
         }
+
+        if (!$this->get('security.authorization_checker')->isGranted('IS_AUTHENTICATED_FULLY')) {
+            $role = $this->getDoctrine()
+                            ->getRepository('IncolabForumBundle:ForumRole')->findOneByName('ROLE_PUBLIC');
+
+            if (!$topic->getCategory()->hasReadRole($role)) {
+                throw $this->createAccessDeniedException("Permission denied");
+            }
+
+            return $this->render(
+                            'IncolabForumBundle:Topic:show.html.twig', array(
+                        'topic' => $topic
+                            )
+            );
+        }
+
+        if (!$this->userCanPostToChild($this->getUser()->getForumRoles(), $topic->getCategory()->getParent(), $topic->getCategory()->getSlug())) {
+            return $this->render(
+                            'IncolabForumBundle:Topic:show.html.twig', array(
+                        'topic' => $topic
+                            )
+            );
+        }
+
 
         $form = $this->createForm(
                 PostType::class, new Post(), array(
@@ -124,7 +161,7 @@ class CategoryController extends Controller {
         if (!$this->userCanPostToChild($this->getUser()->getForumRoles(), $parentCat, $slugCat)) {
             throw $this->createAccessDeniedException("You are not authorized to  create a topic here.");
         }
-        
+
         $form = $this->createForm(TopicType::class, new Topic());
 
         return $this->render(
@@ -149,7 +186,7 @@ class CategoryController extends Controller {
         }
 
         if (!$this->userCanPostToChild($this->getUser()->getForumRoles(), $parentCat, $slugCat)) {
-            throw $this->createAccessDeniedException("You are not authorized to  create a topic here.");
+            throw $this->createAccessDeniedException("You are not authorized to create a topic here.");
         }
 
         $topic = new Topic();
@@ -185,9 +222,9 @@ class CategoryController extends Controller {
         if ($topic === null) {
             throw $this->createNotFoundException('This topic don\'t exists');
         }
-        
+
         if ($this->userCanPostToChild($this->getUser()->getForumRoles(), $topic->getCategory()->getParent(), $slugCat)) {
-            throw $this->createAccessDeniedException("You are not authorized to  create a topic here.");
+            throw $this->createAccessDeniedException("You are not authorized to add a post here.");
         }
 
         $post = new Post();
