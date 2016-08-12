@@ -12,7 +12,7 @@ class TopicRepository extends \Doctrine\ORM\EntityRepository
 {
     public static $strGetTopicQuery = "SELECT t, f, r, "
             . "partial c.{id, name, slug}, partial p.{id, name, slug}, "
-            . "partial fa.{id, username, avatar}, partial ra.{id, username, avatar} "
+            . "fa, ra "
             . "FROM IncolabForumBundle:Topic t LEFT JOIN t.firstPost f "
             . "LEFT JOIN t.replies r LEFT JOIN t.category c LEFT JOIN c.parent p "
             . "LEFT JOIN f.author fa LEFT JOIN r.author ra "
