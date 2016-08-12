@@ -569,4 +569,17 @@ class Category
     {
         return $this->writeRoles->contains($writeRole);
     }
+    
+    /**
+     * Check writeRole
+     *
+     * @param \Incolab\ForumBundle\Entity\ForumRole $writeRole
+     *
+     * @return boolean
+     */
+    public function childHasWriteRoleBySlug(\Incolab\ForumBundle\Entity\ForumRole $writeRole, $slug)
+    {
+        $child = $this->getChildBySlug($slug);
+        return $child->hasWriteRole($writeRole);
+    }
 }

@@ -13,8 +13,23 @@ var DocMTMType = function (name, nametype, container_id) {
 };
 
 DocMTMType.prototype.init = function () {
-    
+    this.init_elements();
     this.container.appendChild(this.gen_btn());
+};
+
+DocMTMType.prototype.init_elements = function () {
+    var li_elmts = this.container.getElementsByTagName("li");
+    console.log(li_elmts);
+    for (var i = 0; i< li_elmts.length; i++) {
+        // <button class="tiny button" id="read-role-bt-{{ forumRolesFields.vars.name }}">Delete Role</button>
+        var btn = document.createElement("button");
+        btn.id = this.nametype + this.nb_items;
+        btn.className = "tiny button";
+        btn.setAttribute("onclick", this.name + ".onclick_delete_mtm(event, this)");
+        btn.innerHTML = "Delete " + this.name;
+        li_elmts[i].appendChild(btn);
+        this.nb_items++;
+    }
 };
 
 /**
@@ -72,7 +87,6 @@ DocMTMType.prototype.insert_mtm_element = function (name, row, err) {
     row = row.replace(/__name__/g, this.nb_items);
     this.nb_items++;
     var rowobject = this.htmlToElement(row);
-    console.log(row);
     li.appendChild(rowobject);
     
     var btn = document.createElement("button");

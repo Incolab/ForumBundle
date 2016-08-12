@@ -15,17 +15,18 @@ class CategoryRepository extends \Doctrine\ORM\EntityRepository {
     public static $strIndexQuery = "SELECT c, ch, crr, "
             . "partial t.{id, author, subject, slug, createdAt}, "
             . "partial p.{id, topic, author, createdAt}, "
-            . "partial a.{id, username}, partial pa.{id, username}, "
+            . "a, pa, "
             . "partial pt.{id, subject, slug} "
             . "FROM IncolabForumBundle:Category c LEFT JOIN c.readRoles crr "
             . "LEFT JOIN c.childs ch LEFT JOIN ch.readRoles chrr "
             . "LEFT JOIN ch.lastTopic t LEFT JOIN t.author a "
             . "LEFT JOIN ch.lastPost p LEFT JOIN p.topic pt LEFT JOIN p.author pa "
-            . "WHERE c.parent IS NULL ";
+            . "WHERE c.parent IS NULL AND crr IN (:readRole) OR chrr IN (:chreadRole) "
+            . "ORDER BY c.position ASC, ch.position ASC";
     public static $strParentCatQuery = "SELECT c, ch, "
             . "partial t.{id, author, subject, category, slug, createdAt}, "
             . "partial p.{id, topic, author, createdAt}, "
-            . "partial ta.{id, username}, partial pa.{id, username}, "
+            . "ta, pa, "
             . "partial pt.{id, subject, slug} "
             . "FROM IncolabForumBundle:Category c LEFT JOIN c.readRoles crr "
             . "LEFT JOIN c.childs ch LEFT JOIN ch.readRoles chrr "
@@ -37,13 +38,12 @@ class CategoryRepository extends \Doctrine\ORM\EntityRepository {
             . "LEFT JOIN c.childs ch "
             . "WHERE c.parent IS NULL "
             . "ORDER BY c.position ASC, ch.position ASC";
-
+    public static $strGetCategoryForInsertTopic = "SELECT p, ch "
+            . "FROM IncolabForumBundle:Category p LEFT JOIN p.childs ch "
+            . "WHERE p.slug = :parentSlug AND p.parent IS NULL AND ch.slug = :childSlug";
+    
     public function getIndex($roles = array()) {
-        $strQuery = self::$strIndexQuery . "AND crr IN (:readRole) OR chrr IN (:chreadRole)";
-
-        $strQuery = $strQuery . "ORDER BY c.position ASC, ch.position ASC";
-        $query = $this->_em->createQuery($strQuery)->setParameters([":readRole" => $roles, ":chreadRole" => $roles]);
-
+        $query = $this->_em->createQuery(self::$strIndexQuery)->setParameters([":readRole" => $roles, ":chreadRole" => $roles]);
         return $query->getResult();
     }
 
@@ -117,26 +117,6 @@ class CategoryRepository extends \Doctrine\ORM\EntityRepository {
         return $category;
     }
 
-    public function getPartialCategoryBySlugAndParentSlug($slug, $parentSlug) {
-        $parameters = array(':slugCat' => $slug, ':slugParent' => $parentSlug);
-
-        $category = $this->createQueryBuilder('c')
-                        ->leftJoin('c.parent', 'p')
-                        ->leftJoin('c.topics', 't')
-                        ->leftJoin('t.author', 'ta')
-                        ->leftJoin('t.lastPost', 'l')
-                        ->leftJoin('l.author', 'la')
-                        ->addSelect('p')
-                        ->addSelect('t')
-                        ->addSelect('partial ta.{id, username}')
-                        ->addSelect('l')
-                        ->addSelect('partial la.{id, username}')
-                        ->where('c.slug = :slugCat AND p.slug = :slugParent')
-                        ->setParameters($parameters)
-                        ->getQuery()->getOneOrNullResult();
-        return $category;
-    }
-
     // A changer pour le paginator
     public function getCategoryPageBySlugAndParentSlug($slug, $parentSlug) {
         $category = $this->createQueryBuilder('c')
@@ -157,14 +137,9 @@ class CategoryRepository extends \Doctrine\ORM\EntityRepository {
     }
 
     public function getCategoryForInsertTopic($slug, $parentSlug) {
-        $category = $this->createQueryBuilder('p')
-                        ->where('p.slug = :parentSlug AND p.parent IS NULL')
-                        ->addSelect('childs')
-                        ->andWhere('childs.slug = :childSlug')
-                        ->leftJoin('p.childs', 'childs')
-                        ->setParameters(array(':parentSlug' => $parentSlug, ':childSlug' => $slug))
-                        ->getQuery()->getOneOrNullResult();
-        return $category;
+        $query = $this->_em->createQuery(static::$strGetCategoryForInsertTopic)
+                ->setParameters([':parentSlug' => $parentSlug, ':childSlug' => $slug]);
+        return $query->getOneOrNullResult();
     }
 
 }
