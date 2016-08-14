@@ -98,7 +98,7 @@ class CategoryRepository extends \Doctrine\ORM\EntityRepository {
     }
 
     public function getParentCategoryBySlug($readRoles, $slug) {
-        $strQuery = self::$strParentCatQuery . "AND crr IN (:readRole) OR chrr IN (:chreadRole)";
+        $strQuery = self::$strParentCatQuery . "AND (crr IN (:readRole) OR chrr IN (:chreadRole))";
 
         $parameters = [
                     ":slug" => $slug,
