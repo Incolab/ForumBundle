@@ -38,6 +38,11 @@ class CategoryRepository extends \Doctrine\ORM\EntityRepository {
             . "LEFT JOIN c.childs ch "
             . "WHERE c.parent IS NULL "
             . "ORDER BY c.position ASC, ch.position ASC";
+    public static $strGetCategoryBySlugAndParentSlug = "SELECT c, p, t, lp, lpa, crr "
+            . "FROM IncolabForumBundle:Category c LEFT JOIN c.parent p "
+            . "LEFT JOIN c.topics t LEFT JOIN t.lastPost lp LEFT JOIN lp.author lpa "
+            . "INNER JOIN c.readRoles crr "
+            . "WHERE c.slug = :cslug AND p.slug = :pslug";
     public static $strGetCategoryForInsertTopic = "SELECT p, ch "
             . "FROM IncolabForumBundle:Category p LEFT JOIN p.childs ch "
             . "WHERE p.slug = :parentSlug AND p.parent IS NULL AND ch.slug = :childSlug";
@@ -96,7 +101,7 @@ class CategoryRepository extends \Doctrine\ORM\EntityRepository {
         $strQuery = self::$strParentCatQuery . "AND crr IN (:readRole) OR chrr IN (:chreadRole)";
 
         $parameters = [
-                    "slug" => $slug,
+                    ":slug" => $slug,
                     ":readRole" => $readRoles,
                     ":chreadRole" => $readRoles
         ];
@@ -108,13 +113,15 @@ class CategoryRepository extends \Doctrine\ORM\EntityRepository {
     }
 
     public function getCategoryBySlugAndParentSlug($slug, $parentSlug) {
-        $category = $this->createQueryBuilder('c')
-                        ->leftJoin('c.parent', 'p')
-                        ->addSelect('p')
-                        ->where('c.slug = :slugCat AND p.slug = :slugParent')
-                        ->setParameters(array(':slugCat' => $slug, ':slugParent' => $parentSlug))
-                        ->getQuery()->getOneOrNullResult();
-        return $category;
+        $params = [
+            'cslug' => $slug,
+            'pslug' => $parentSlug
+        ];
+        
+        $query = $this->_em->createQuery(self::$strGetCategoryBySlugAndParentSlug)
+                ->setParameters($params);
+        
+        return $query->getOneOrNullResult();
     }
 
     // A changer pour le paginator
