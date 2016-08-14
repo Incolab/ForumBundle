@@ -223,7 +223,7 @@ class CategoryController extends Controller {
             throw $this->createNotFoundException('This topic don\'t exists');
         }
 
-        if ($this->userCanPostToChild($this->getUser()->getForumRoles(), $topic->getCategory()->getParent(), $slugCat)) {
+        if (!$this->userCanPostToChild($this->getUser()->getForumRoles(), $topic->getCategory()->getParent(), $slugCat)) {
             throw $this->createAccessDeniedException("You are not authorized to add a post here.");
         }
 
