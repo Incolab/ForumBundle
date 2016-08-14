@@ -20,7 +20,7 @@ class Topic
      * @Assert\NotBlank()
      * @Assert\Length(
      *      min = 10,
-     *      minMessage = "Votre réponse doit contenir {{ limit }} caractères minimum"
+     *      minMessage = "Votre titre doit contenir {{ limit }} caractères minimum"
      * )
      */
     private $subject;
