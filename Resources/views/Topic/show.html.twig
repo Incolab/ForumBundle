@@ -66,6 +66,19 @@
                 {% endif %}
             {% endif %}
         {% endfor %}
+    <div>
+        {% if pagination is defined %}
+            <p style="text-align:center;">Pages:<br/> |
+            {% for i in 1..pagination.nbPages %}
+                {% if i == pagination.current %}
+                    {{ i }} |
+                {% else %}
+                    <a href="{{ path('incolab_forum_topic_show', {'slugParentCat': topic.category.parent.slug, 'slugCat': topic.category.slug, 'slugTopic': topic.slug}) }}?page={{ i }}">{{ i }}</a> |
+                {% endif %}
+            {% endfor %}
+            <p>
+        {% endif %}
+    </div>
     <div class="large-12 columns">
         <div class="panelCat">
             <h3 class="text-center">Add a reply</h3>

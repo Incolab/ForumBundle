@@ -42,7 +42,7 @@ class CategoryController extends Controller {
         if ($category === null) {
             throw $this->createNotFoundException('Aucune Catégorie pour cette adresse.');
         }
-        
+
         if (!$this->get('security.authorization_checker')->isGranted('IS_AUTHENTICATED_FULLY')) {
             $role = $this->getDoctrine()
                             ->getRepository('IncolabForumBundle:ForumRole')->findOneByName('ROLE_PUBLIC');
@@ -50,7 +50,7 @@ class CategoryController extends Controller {
             if (!$category->hasReadRole($role)) {
                 throw $this->createAccessDeniedException("Permission denied");
             }
-            
+
             return $this->render(
                             'IncolabForumBundle:Category:category.html.twig', array(
                         'category' => $category,
@@ -59,7 +59,7 @@ class CategoryController extends Controller {
             );
         }
 
-        if (!$this->userCanPostToChild($this->getUser()->getForumRoles(), $category->getParent(), $category->getSlug())) {
+        if (!$this->userCanPost($this->getUser()->getForumRoles(), $category)) {
             return $this->render(
                             'IncolabForumBundle:Category:category.html.twig', array(
                         'category' => $category,
@@ -87,12 +87,35 @@ class CategoryController extends Controller {
         );
     }
 
-    public function topicShowAction($slugParentCat, $slugCat, $slugTopic) {
+    public function topicShowAction(Request $request, $slugParentCat, $slugCat, $slugTopic) {
+        
+        $page = 1;
+        if ($request->query->has('page')) {
+            $page = $request->query->get('page');
+            if ($page < 1) {
+                throw $this->createAccessDeniedException("Invalid Page");
+            }
+        }
+
         $topic = $this->getDoctrine()->getRepository('IncolabForumBundle:Topic')
-                ->getTopicBySlugTopicCatParentCat($slugTopic, $slugCat, $slugParentCat);
+                ->getTopic($slugTopic, $slugCat, $slugParentCat, $page, 10);
+        
         if ($topic === null) {
             throw $this->createNotFoundException('This topic don\'t exists');
         }
+
+        $pagination = [
+            "nbPages" => round($this->getDoctrine()->getRepository("IncolabForumBundle:Post")
+                    ->getNbPostsByTopic($topic) / 10),
+            "current" => $page
+        ];
+
+        $paramsRender['topic'] = $topic;
+        
+        if ($pagination["nbPages"] > 1) {
+            $paramsRender["pagination"] = $pagination;
+        }
+        
 
         if (!$this->get('security.authorization_checker')->isGranted('IS_AUTHENTICATED_FULLY')) {
             $role = $this->getDoctrine()
@@ -102,19 +125,11 @@ class CategoryController extends Controller {
                 throw $this->createAccessDeniedException("Permission denied");
             }
 
-            return $this->render(
-                            'IncolabForumBundle:Topic:show.html.twig', array(
-                        'topic' => $topic
-                            )
-            );
+            return $this->render('IncolabForumBundle:Topic:show.html.twig', $paramsRender);
         }
 
-        if (!$this->userCanPostToChild($this->getUser()->getForumRoles(), $topic->getCategory()->getParent(), $topic->getCategory()->getSlug())) {
-            return $this->render(
-                            'IncolabForumBundle:Topic:show.html.twig', array(
-                        'topic' => $topic
-                            )
-            );
+        if (!$this->userCanPost($this->getUser()->getForumRoles(), $topic->getCategory())) {
+            return $this->render('IncolabForumBundle:Topic:show.html.twig', $paramsRender);
         }
 
 
@@ -130,15 +145,19 @@ class CategoryController extends Controller {
             'method' => 'POST'
                 )
         );
-
-        return $this->render(
-                        'IncolabForumBundle:Topic:show.html.twig', array('topic' => $topic, 'postForm' => $form->createView())
-        );
+        
+        $paramsRender["postForm"] = $form->createView();
+        
+        return $this->render('IncolabForumBundle:Topic:show.html.twig', $paramsRender);
     }
 
-    private function userCanPostToChild($userRoles, $category, $childSlug) {
+    private function userCanPost($userRoles, $category) {
+        if ($category === null) {
+            return false;
+        }
+
         foreach ($userRoles as $role) {
-            if ($category->childHasWriteRoleBySlug($role, $childSlug)) {
+            if ($category->hasWriteRole($role)) {
                 return true;
             }
         }
@@ -158,7 +177,7 @@ class CategoryController extends Controller {
             throw $this->createNotFoundException('La catégorie n\'existe pas');
         }
 
-        if (!$this->userCanPostToChild($this->getUser()->getForumRoles(), $parentCat, $slugCat)) {
+        if (!$this->userCanPost($this->getUser()->getForumRoles(), $parentCat->getChildBySlug($slugCat))) {
             throw $this->createAccessDeniedException("You are not authorized to  create a topic here.");
         }
 
@@ -185,7 +204,7 @@ class CategoryController extends Controller {
             throw $this->createNotFoundException('La catégorie n\'existe pas');
         }
 
-        if (!$this->userCanPostToChild($this->getUser()->getForumRoles(), $parentCat, $slugCat)) {
+        if (!$this->userCanPost($this->getUser()->getForumRoles(), $parentCat->getChildBySlug($slugCat))) {
             throw $this->createAccessDeniedException("You are not authorized to create a topic here.");
         }
 
@@ -223,7 +242,7 @@ class CategoryController extends Controller {
             throw $this->createNotFoundException('This topic don\'t exists');
         }
 
-        if (!$this->userCanPostToChild($this->getUser()->getForumRoles(), $topic->getCategory()->getParent(), $slugCat)) {
+        if (!$this->userCanPost($this->getUser()->getForumRoles(), $topic->getCategory())) {
             throw $this->createAccessDeniedException("You are not authorized to add a post here.");
         }
 

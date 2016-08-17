@@ -3,6 +3,7 @@
 namespace Incolab\ForumBundle\Repository;
 
 use UserBundle\Entity\User;
+use Incolab\ForumBundle\Entity\Topic;
 
 /**
  * PostRepository
@@ -19,6 +20,11 @@ class PostRepository extends \Doctrine\ORM\EntityRepository
             . "WHERE p.id = :id AND p.author = :author AND t.slug = :slugTopic "
             . "AND c.slug = :slugCat AND q.slug = :slugParentCat";
     
+    public static $strGetNbPostByTopic = "SELECT COUNT(p.id) "
+            . "FROM IncolabForumBundle:Post p "
+            . "WHERE p.topic = :topic";
+    
+    
     public function getPostForEdit($slugParentCat, $slugCat, $slugTopic, $postId, User $author)
     {
         $parameters = array(
@@ -32,5 +38,11 @@ class PostRepository extends \Doctrine\ORM\EntityRepository
         $query = $this->_em->createQuery(self::$strPostForEditQuery)
                 ->setParameters($parameters);
         return $query->getOneOrNullResult();
+    }
+    
+    public function getNbPostsByTopic(Topic $topic) {
+        $query = $this->_em->createQuery(self::$strGetNbPostByTopic)
+                ->setParameter(":topic", $topic);
+        return $query->getSingleScalarResult();
     }
 }
