@@ -35,12 +35,36 @@ class CategoryController extends Controller {
         );
     }
 
-    public function categoryAction($slugParentCat, $slugCat) {
+    public function categoryAction(Request $request, $slugParentCat, $slugCat) {
+        $page = 1;
+        $elmtsByPage = 10;
+
+        if ($request->query->has('page')) {
+            $page = $request->query->get('page');
+            if ($page < 1) {
+                throw $this->createAccessDeniedException("Invalid Page");
+            }
+        }
+
         $category = $this->getDoctrine()->getrepository('IncolabForumBundle:Category')
-                ->getCategoryBySlugAndParentSlug($slugCat, $slugParentCat);
+                ->getCategory($slugCat, $slugParentCat, $page, $elmtsByPage);
 
         if ($category === null) {
             throw $this->createNotFoundException('Aucune Catégorie pour cette adresse.');
+        }
+
+        $paramsRender = [
+            'category' => $category,
+            'topics' => $category->getTopics()
+        ];
+        
+        $pagination = [
+            "nbPages" => ceil($this->getDoctrine()->getRepository("IncolabForumBundle:Topic")
+                            ->getNbTopicByCat($category) / $elmtsByPage),
+            "current" => $page
+        ];
+        if ($pagination["nbPages"] > 1) {
+            $paramsRender["pagination"] = $pagination;
         }
 
         if (!$this->get('security.authorization_checker')->isGranted('IS_AUTHENTICATED_FULLY')) {
@@ -51,21 +75,11 @@ class CategoryController extends Controller {
                 throw $this->createAccessDeniedException("Permission denied");
             }
 
-            return $this->render(
-                            'IncolabForumBundle:Category:category.html.twig', array(
-                        'category' => $category,
-                        'topics' => $category->getTopics(),
-                            )
-            );
+            return $this->render('IncolabForumBundle:Category:category.html.twig',$paramsRender);
         }
 
         if (!$this->userCanPost($this->getUser()->getForumRoles(), $category)) {
-            return $this->render(
-                            'IncolabForumBundle:Category:category.html.twig', array(
-                        'category' => $category,
-                        'topics' => $category->getTopics(),
-                            )
-            );
+            return $this->render('IncolabForumBundle:Category:category.html.twig',$paramsRender);
         }
 
         $form = $this->createForm(
@@ -77,19 +91,16 @@ class CategoryController extends Controller {
             'method' => 'POST'
                 )
         );
+        
+        $paramsRender["topicForm"] = $form->createView();
 
-        return $this->render(
-                        'IncolabForumBundle:Category:category.html.twig', array(
-                    'category' => $category,
-                    'topics' => $category->getTopics(),
-                    'topicForm' => $form->createView()
-                        )
-        );
+        return $this->render('IncolabForumBundle:Category:category.html.twig',$paramsRender);
     }
 
     public function topicShowAction(Request $request, $slugParentCat, $slugCat, $slugTopic) {
-        
         $page = 1;
+        $elmtsByPage = 10;
+
         if ($request->query->has('page')) {
             $page = $request->query->get('page');
             if ($page < 1) {
@@ -98,24 +109,24 @@ class CategoryController extends Controller {
         }
 
         $topic = $this->getDoctrine()->getRepository('IncolabForumBundle:Topic')
-                ->getTopic($slugTopic, $slugCat, $slugParentCat, $page, 10);
-        
+                ->getTopic($slugTopic, $slugCat, $slugParentCat, $page, $elmtsByPage);
+
         if ($topic === null) {
             throw $this->createNotFoundException('This topic don\'t exists');
         }
+        
+        $paramsRender['topic'] = $topic;
 
         $pagination = [
-            "nbPages" => round($this->getDoctrine()->getRepository("IncolabForumBundle:Post")
-                    ->getNbPostsByTopic($topic) / 10),
+            "nbPages" => ceil($this->getDoctrine()->getRepository("IncolabForumBundle:Post")
+                            ->getNbPostsByTopic($topic) / $elmtsByPage),
             "current" => $page
         ];
-
-        $paramsRender['topic'] = $topic;
         
         if ($pagination["nbPages"] > 1) {
             $paramsRender["pagination"] = $pagination;
         }
-        
+
 
         if (!$this->get('security.authorization_checker')->isGranted('IS_AUTHENTICATED_FULLY')) {
             $role = $this->getDoctrine()
@@ -145,9 +156,9 @@ class CategoryController extends Controller {
             'method' => 'POST'
                 )
         );
-        
+
         $paramsRender["postForm"] = $form->createView();
-        
+
         return $this->render('IncolabForumBundle:Topic:show.html.twig', $paramsRender);
     }
 

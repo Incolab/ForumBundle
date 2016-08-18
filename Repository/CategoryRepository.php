@@ -2,8 +2,6 @@
 
 namespace Incolab\ForumBundle\Repository;
 
-use Doctrine\ORM\Tools\Pagination\Paginator;
-
 /**
  * CategoryRepository
  *
@@ -23,6 +21,7 @@ class CategoryRepository extends \Doctrine\ORM\EntityRepository {
             . "LEFT JOIN ch.lastPost p LEFT JOIN p.topic pt LEFT JOIN p.author pa "
             . "WHERE c.parent IS NULL AND crr IN (:readRole) OR chrr IN (:chreadRole) "
             . "ORDER BY c.position ASC, ch.position ASC";
+    
     public static $strParentCatQuery = "SELECT c, ch, "
             . "partial t.{id, author, subject, category, slug, createdAt}, "
             . "partial p.{id, topic, author, createdAt}, "
@@ -32,17 +31,22 @@ class CategoryRepository extends \Doctrine\ORM\EntityRepository {
             . "LEFT JOIN c.childs ch LEFT JOIN ch.readRoles chrr "
             . "LEFT JOIN ch.lastTopic t LEFT JOIN t.author ta "
             . "LEFT JOIN ch.lastPost p LEFT JOIN p.topic pt LEFT JOIN p.author pa "
-            . "WHERE c.slug = :slug AND c.parent IS NULL ";
+            . "WHERE c.slug = :slug AND c.parent IS NULL "
+            . "AND (crr IN (:readRole) OR chrr IN (:chreadRole)) "
+            . "ORDER BY c.position ASC, ch.position ASC";
+    
     public static $strParentsWithChilds = "SELECT c, ch "
             . "FROM IncolabForumBundle:Category c "
             . "LEFT JOIN c.childs ch "
             . "WHERE c.parent IS NULL "
             . "ORDER BY c.position ASC, ch.position ASC";
-    public static $strGetCategoryBySlugAndParentSlug = "SELECT c, p, t, lp, lpa, crr "
+    
+    public static $strGetCategoryBySlugAndParentSlug = "SELECT c, p, t, lp, lpa, crr, cwr "
             . "FROM IncolabForumBundle:Category c LEFT JOIN c.parent p "
             . "LEFT JOIN c.topics t LEFT JOIN t.lastPost lp LEFT JOIN lp.author lpa "
-            . "INNER JOIN c.readRoles crr "
+            . "INNER JOIN c.readRoles crr INNER JOIN c.writeRoles cwr "
             . "WHERE c.slug = :cslug AND p.slug = :pslug";
+    
     public static $strGetCategoryForInsertTopic = "SELECT p, ch "
             . "FROM IncolabForumBundle:Category p LEFT JOIN p.childs ch "
             . "WHERE p.slug = :parentSlug AND p.parent IS NULL AND ch.slug = :childSlug";
@@ -74,44 +78,33 @@ class CategoryRepository extends \Doctrine\ORM\EntityRepository {
         return $parentCat;
     }
 
-    // A changer pour le paginator
-    public function getParentCategoryPageBySlug($slug, $page = 1, $maxperpage = 10) {
-        $parentCategory = $this->createQueryBuilder('p')
-                ->leftJoin('p.childs', 'c')
-                ->leftJoin('c.lastTopic', 'l')
-                ->leftJoin('c.lastPost', 'm')
-                ->leftJoin('l.author', 'a')
-                ->leftJoin('m.author', 'b')
-                ->addSelect('c')
-                ->addSelect('partial l.{id, author, subject, category, slug, createdAt}')
-                ->addSelect('partial m.{id, topic, author, createdAt}')
-                ->addSelect('partial a.{id, username}')
-                ->addSelect('partial b.{id, username}')
-                ->where('p.slug = :slug AND p.parent IS NULL')
-                ->setParameter(':slug', $slug)
-                //->getQuery()->getOneOrNullResult()
-                ->setFirstResult(($page - 1) * $maxperpage)
-                ->setMaxResults($maxperpage)
-        ;
-
-        return new Paginator($parentCategory);
-    }
-
     public function getParentCategoryBySlug($readRoles, $slug) {
-        $strQuery = self::$strParentCatQuery . "AND (crr IN (:readRole) OR chrr IN (:chreadRole))";
-
         $parameters = [
                     ":slug" => $slug,
                     ":readRole" => $readRoles,
                     ":chreadRole" => $readRoles
         ];
-
-        $strQuery = $strQuery . "ORDER BY c.position ASC, ch.position ASC";
-        $query = $this->_em->createQuery($strQuery)->setParameters($parameters);
+        
+        $query = $this->_em->createQuery(self::$strParentCatQuery)->setParameters($parameters);
 
         return $query->getOneOrNullResult();
     }
 
+    public function getCategory($slug, $parentSlug, $page = 1, $maxResults = 10) {
+        $params = [
+            'cslug' => $slug,
+            'pslug' => $parentSlug
+        ];
+        
+        $query = $this->_em->createQuery(self::$strGetCategoryBySlugAndParentSlug)
+                ->setParameters($params);
+        
+        $query->setFirstResult(($page - 1) * $maxResults)
+                ->setMaxResults($maxResults);
+        
+        return $query->getOneOrNullResult();
+    }
+    
     public function getCategoryBySlugAndParentSlug($slug, $parentSlug) {
         $params = [
             'cslug' => $slug,
@@ -122,25 +115,6 @@ class CategoryRepository extends \Doctrine\ORM\EntityRepository {
                 ->setParameters($params);
         
         return $query->getOneOrNullResult();
-    }
-
-    // A changer pour le paginator
-    public function getCategoryPageBySlugAndParentSlug($slug, $parentSlug) {
-        $category = $this->createQueryBuilder('c')
-                        ->leftJoin('c.parent', 'p')
-                        ->leftJoin('c.topics', 't')
-                        ->leftJoin('t.author', 'ta')
-                        ->leftJoin('t.lastPost', 'l')
-                        ->leftJoin('l.author', 'la')
-                        ->addSelect('p')
-                        ->addSelect('distinct t')
-                        ->addSelect('partial ta.{id, username}')
-                        ->addSelect('l')
-                        ->addSelect('partial la.{id, username}')
-                        ->where('c.slug = :slugCat AND p.slug = :slugParent')
-                        ->setParameters(array(':slugCat' => $slug, ':slugParent' => $parentSlug))
-                        ->getQuery()->getOneOrNullResult();
-        return $category;
     }
 
     public function getCategoryForInsertTopic($slug, $parentSlug) {

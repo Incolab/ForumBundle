@@ -2,6 +2,8 @@
 
 namespace Incolab\ForumBundle\Repository;
 
+use Incolab\ForumBundle\Entity\Category;
+
 /**
  * TopicRepository
  *
@@ -19,6 +21,10 @@ class TopicRepository extends \Doctrine\ORM\EntityRepository {
             . "INNER JOIN c.readRoles crr INNER JOIN c.writeRoles cwr "
             . "WHERE t.slug = :slugTopic AND c.slug = :slugCat AND p.slug = :slugParentCat "
             . "ORDER BY r.createdAt ASC";
+    
+    public static $strGetNbTopicByCat = "SELECT COUNT(t.id) "
+            . "FROM IncolabForumBundle:Topic t "
+            . "WHERE t.category = :cat";
 
     public function getTopic($slugTopic, $slugCat, $slugParentCat, $page = 1, $maxResults = 10) {
         $query = $this->_em->createQuery(self::$strGetTopicQuery)
@@ -69,6 +75,13 @@ class TopicRepository extends \Doctrine\ORM\EntityRepository {
                         ->getQuery()->getOneOrNullResult();
 
         return $topic;
+    }
+    
+    public function getNbTopicByCat(Category $category) {
+        $query = $this->_em->createQuery(self::$strGetNbTopicByCat)
+                ->setParameter(":cat", $category);
+        
+        return $query->getSingleScalarResult();
     }
 
 }
