@@ -41,11 +41,13 @@ class CategoryRepository extends \Doctrine\ORM\EntityRepository {
             . "WHERE c.parent IS NULL "
             . "ORDER BY c.position ASC, ch.position ASC";
     
-    public static $strGetCategoryBySlugAndParentSlug = "SELECT c, p, t, lp, lpa, crr, cwr "
+    public static $strGetCategoryBySlugAndParentSlug = "SELECT c, p, t, lp, lpa, crr, cwr, "
+            . "(CASE WHEN lp.id IS NULL THEN 0 ELSE 1 END) AS HIDDEN ordlp "
             . "FROM IncolabForumBundle:Category c LEFT JOIN c.parent p "
             . "LEFT JOIN c.topics t LEFT JOIN t.lastPost lp LEFT JOIN lp.author lpa "
             . "INNER JOIN c.readRoles crr INNER JOIN c.writeRoles cwr "
-            . "WHERE c.slug = :cslug AND p.slug = :pslug";
+            . "WHERE c.slug = :cslug AND p.slug = :pslug AND t.isBuried = false "
+            . "ORDER BY t.isPinned DESC, ordlp DESC, lp.id DESC";
     
     public static $strGetCategoryForInsertTopic = "SELECT p, ch "
             . "FROM IncolabForumBundle:Category p LEFT JOIN p.childs ch "

@@ -13,7 +13,7 @@ use Incolab\ForumBundle\Entity\Topic;
  */
 class PostRepository extends \Doctrine\ORM\EntityRepository
 {
-    public static $strPostForEditQuery = "SELECT p, "
+    public static $strPostForEdit = "SELECT p, "
             . "partial t.{id, slug}, partial c.{id, slug}, partial q.{id, slug} "
             . "FROM IncolabForumBundle:Post p "
             . "LEFT JOIN p.topic t LEFT JOIN t.category c LEFT JOIN c.parent q "
@@ -45,7 +45,7 @@ class PostRepository extends \Doctrine\ORM\EntityRepository
             ':slugParentCat' => $slugParentCat
         );
         
-        $query = $this->_em->createQuery(self::$strPostForEditQuery)
+        $query = $this->_em->createQuery(self::$strPostForEdit)
                 ->setParameters($parameters);
         return $query->getOneOrNullResult();
     }

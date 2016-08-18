@@ -120,6 +120,10 @@ class CategoryController extends Controller {
         if ($topic === null) {
             throw $this->createNotFoundException('This topic don\'t exists');
         }
+        
+        if ($topic->isBuried()) {
+            throw $this->createAccessDeniedException('This topic is buried');
+        }
 
         $paramsRender['topic'] = $topic;
 
@@ -151,7 +155,7 @@ class CategoryController extends Controller {
             throw $this->createAccessDeniedException("Permission denied");
         }
 
-        if (!$this->userCanPost($user->getForumRoles(), $topic->getCategory())) {
+        if (!$this->userCanPost($user->getForumRoles(), $topic->getCategory()) || $topic->isClosed()) {
             return $this->render('IncolabForumBundle:Topic:show.html.twig', $paramsRender);
         }
 
@@ -276,6 +280,10 @@ class CategoryController extends Controller {
 
         if ($topic === null) {
             throw $this->createNotFoundException('This topic don\'t exists');
+        }
+        
+        if ($topic->isBuried() || $topic->isClosed()) {
+            throw $this->createAccessDeniedException('The topic is buried or closed');
         }
 
         if (!$this->userCanPost($this->getUser()->getForumRoles(), $topic->getCategory())) {

@@ -46,6 +46,10 @@ class PostController extends Controller {
         if ($post === null) {
             throw $this->createNotFoundException('This post don\'t exists or you aren\'t allowed to edit.');
         }
+        
+        if ($post->getTopic()->isBuried() || $post->getTopic()->isClosed()) {
+            throw $this->createAccessDeniedException('The topic\'s post is buried or closed');
+        }
 
         $postForm = $this->createForm(PostType::class, $post);
 
