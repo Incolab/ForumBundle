@@ -24,7 +24,17 @@ class PostRepository extends \Doctrine\ORM\EntityRepository
             . "FROM IncolabForumBundle:Post p "
             . "WHERE p.topic = :topic";
     
-    
+    public static $strGetNbPostsUntilId = "SELECT COUNT(p.id) "
+            . "FROM IncolabForumBundle:Post p "
+            . "WHERE p.topic = :topic AND p.id < :postid";
+    public static $strGetNbPostsUntilIdByTopicSlug = "SELECT COUNT(p.id) "
+            . "FROM IncolabForumBundle:Post p "
+            . "LEFT JOIN p.topic t "
+            . "WHERE t.slug = :topicSlug AND p.id < :postid";
+
+
+
+
     public function getPostForEdit($slugParentCat, $slugCat, $slugTopic, $postId, User $author)
     {
         $parameters = array(
@@ -44,5 +54,19 @@ class PostRepository extends \Doctrine\ORM\EntityRepository
         $query = $this->_em->createQuery(self::$strGetNbPostByTopic)
                 ->setParameter(":topic", $topic);
         return $query->getSingleScalarResult();
+    }
+    
+    public function getNbPostsUntilId(Topic $topic, $postid) {
+        $params = [":topic" => $topic, ":postid" => $postid];
+        $query = $this->_em->createQuery(self::$strGetNbPostsUntilId)
+                ->setParameters($params);
+        return $query->getSingleScalarResult();
+    }
+    
+    public function getNbPostsUntilIdByTopicSlug($topicSlug, $postid) {
+        $params = [":topicSlug" => $topicSlug, ":postid" => $postid];
+        $query = $this->_em->createQuery(self::$strGetNbPostsUntilIdByTopicSlug)
+                ->setParameters($params);
+        return $query->getSingleScalarResult() + 1;
     }
 }

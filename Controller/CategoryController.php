@@ -57,7 +57,7 @@ class CategoryController extends Controller {
             'category' => $category,
             'topics' => $category->getTopics()
         ];
-        
+
         $pagination = [
             "nbPages" => ceil($this->getDoctrine()->getRepository("IncolabForumBundle:Topic")
                             ->getNbTopicByCat($category) / $elmtsByPage),
@@ -75,11 +75,17 @@ class CategoryController extends Controller {
                 throw $this->createAccessDeniedException("Permission denied");
             }
 
-            return $this->render('IncolabForumBundle:Category:category.html.twig',$paramsRender);
+            return $this->render('IncolabForumBundle:Category:category.html.twig', $paramsRender);
+        }
+        
+        $user = $this->getUser();
+        
+        if (!$this->userCanRead($user->getForumRoles(), $category)) {
+            throw $this->createAccessDeniedException("Permission denied");
         }
 
-        if (!$this->userCanPost($this->getUser()->getForumRoles(), $category)) {
-            return $this->render('IncolabForumBundle:Category:category.html.twig',$paramsRender);
+        if (!$this->userCanPost($user->getForumRoles(), $category)) {
+            return $this->render('IncolabForumBundle:Category:category.html.twig', $paramsRender);
         }
 
         $form = $this->createForm(
@@ -91,10 +97,10 @@ class CategoryController extends Controller {
             'method' => 'POST'
                 )
         );
-        
+
         $paramsRender["topicForm"] = $form->createView();
 
-        return $this->render('IncolabForumBundle:Category:category.html.twig',$paramsRender);
+        return $this->render('IncolabForumBundle:Category:category.html.twig', $paramsRender);
     }
 
     public function topicShowAction(Request $request, $slugParentCat, $slugCat, $slugTopic) {
@@ -114,7 +120,7 @@ class CategoryController extends Controller {
         if ($topic === null) {
             throw $this->createNotFoundException('This topic don\'t exists');
         }
-        
+
         $paramsRender['topic'] = $topic;
 
         $pagination = [
@@ -122,7 +128,7 @@ class CategoryController extends Controller {
                             ->getNbPostsByTopic($topic) / $elmtsByPage),
             "current" => $page
         ];
-        
+
         if ($pagination["nbPages"] > 1) {
             $paramsRender["pagination"] = $pagination;
         }
@@ -138,8 +144,14 @@ class CategoryController extends Controller {
 
             return $this->render('IncolabForumBundle:Topic:show.html.twig', $paramsRender);
         }
+        
+        $user = $this->getUser();
+        
+        if (!$this->userCanRead($user->getForumRoles(), $topic->getCategory())) {
+            throw $this->createAccessDeniedException("Permission denied");
+        }
 
-        if (!$this->userCanPost($this->getUser()->getForumRoles(), $topic->getCategory())) {
+        if (!$this->userCanPost($user->getForumRoles(), $topic->getCategory())) {
             return $this->render('IncolabForumBundle:Topic:show.html.twig', $paramsRender);
         }
 
@@ -160,6 +172,19 @@ class CategoryController extends Controller {
         $paramsRender["postForm"] = $form->createView();
 
         return $this->render('IncolabForumBundle:Topic:show.html.twig', $paramsRender);
+    }
+
+    private function userCanRead($userRoles, $category) {
+        if ($category === null) {
+            return false;
+        }
+
+        foreach ($userRoles as $role) {
+            if ($category->hasReadRole($role)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private function userCanPost($userRoles, $category) {

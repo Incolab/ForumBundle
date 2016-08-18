@@ -25,7 +25,7 @@
                     <p>Posted {{ element.createdAt|date('d-m-y \\a\\t H:i') }} by <em>{{ element.author.username }}</em></p>
                     <p>Last Post: 
                 {% if element.lastPost is not empty %}
-                        <a href="{{ path('incolab_forum_topic_show', {'slugParentCat': category.parent.slug, 'slugCat': category.slug, 'slugTopic': element.slug}) }}#{{ element.lastPost.id }}">{{ element.subject }}</a> by {{ element.lastPost.author.username }} | {{ element.lastPost.createdAt|date('d-m-y \\a\\t H:i') }}
+                        <a href="{{ path('incolab_forum_post_permalink', {'slugParentCat': category.parent.slug, 'slugCat': category.slug, 'slugTopic': element.slug, 'postId': element.lastPost.id}) }}#{{ element.lastPost.id }}">{{ element.subject }}</a> by {{ element.lastPost.author.username }} | {{ element.lastPost.createdAt|date('d-m-y \\a\\t H:i') }}
                 {% else %}
                         <em>No posts at the moment</em>
                 {% endif %}

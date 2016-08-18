@@ -42,7 +42,7 @@
                         <div class="large-6 columns">
                             <p>Last Post: 
                 {% if subElement.lastPost is not empty %}
-                                <a href="{{ path('incolab_forum_topic_show', {'slugParentCat': element.slug, 'slugCat': subElement.slug, 'slugTopic': subElement.lastPost.topic.slug}) }}">{{ subElement.lastPost.topic.subject }}</a> by {{ subElement.lastPost.author.username }} <br/> {{ subElement.lastPost.createdAt|date('d-m-y \\a\\t H:i') }}
+                                <a href="{{ path('incolab_forum_post_permalink', {'slugParentCat': element.slug, 'slugCat': subElement.slug, 'slugTopic': subElement.lastPost.topic.slug, 'postId': subElement.lastPost.id}) }}#{{ subElement.lastPost.id}}">{{ subElement.lastPost.topic.subject }}</a> by {{ subElement.lastPost.author.username }} <br/> {{ subElement.lastPost.createdAt|date('d-m-y \\a\\t H:i') }}
                 {% else %}
                                 <em>No posts at the moment</em>
                 {% endif %}

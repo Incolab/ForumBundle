@@ -56,3 +56,12 @@ incolab_forum_post_edit:
         slugCat: "[A-z0-9_-]+"
         slugTopic: "[A-z0-9_-]+"
         postId: \d+
+
+incolab_forum_post_permalink:
+    path: /{slugParentCat}/{slugCat}/{slugTopic}/permalink/{postId}
+    defaults: { _controller: IncolabForumBundle:Post:permalink }
+    requirements:
+        slugParentCat: "[A-z0-9_-]+"
+        slugCat: "[A-z0-9_-]+"
+        slugTopic: "[A-z0-9_-]+"
+        postId: \d+
