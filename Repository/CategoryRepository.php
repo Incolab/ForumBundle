@@ -46,7 +46,7 @@ class CategoryRepository extends \Doctrine\ORM\EntityRepository {
             . "FROM IncolabForumBundle:Category c LEFT JOIN c.parent p "
             . "LEFT JOIN c.topics t LEFT JOIN t.lastPost lp LEFT JOIN lp.author lpa "
             . "INNER JOIN c.readRoles crr INNER JOIN c.writeRoles cwr "
-            . "WHERE c.slug = :cslug AND p.slug = :pslug AND t.isBuried = false "
+            . "WHERE c.slug = :cslug AND p.slug = :pslug OR t.isBuried = false "
             . "ORDER BY t.isPinned DESC, t.createdAt DESC, lp.createdAt DESC, ordlp DESC";
     
     public static $strGetCategoryForInsertTopic = "SELECT p, ch "
