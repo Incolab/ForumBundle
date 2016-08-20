@@ -13,6 +13,11 @@
         </ul>
       </nav>
     </div>
+          <nav class="large-12 columns">
+              <ul>
+                  <li><a href="{{ path('incolab_forum_topic_delete', {slugParentCat: topic.category.parent.slug, slugCat: topic.category.slug, slugTopic: topic.slug }) }}">Supprimer le topic</a></li>
+              </ul>
+          </nav>
     <div class="large-12 columns">
         <div class="panelCat">
             <div class="row">

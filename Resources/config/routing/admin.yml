@@ -31,15 +31,15 @@ incolab_forum_admin_child_category_modify:
 
 #Topics
 incolab_forum_topic_delete:
-    path: /categories/{parentCatSlug}/{catSlug}/delete/{slug}
+    path: /categories/{slugParentCat}/{slugCat}/delete/{slugTopic}
     defaults: { _controller: IncolabForumBundle:Admin:topicDelete }
     requirements:
-        parentCatSlug: "[A-z0-9_-]+"
-        catSlug: "[A-z0-9_-]+"
-        slug: "[A-z0-9_-]+"
+        slugParentCat: "[A-z0-9_-]+"
+        slugCat: "[A-z0-9_-]+"
+        slugTopic: "[A-z0-9_-]+"
 
 # Posts
-incolab_forum_topic_delete:
+incolab_forum_post_delete:
     path: /categories/{parentCatSlug}/{catSlug}/{slug}/delete/{id}
     defaults: { _controller: IncolabForumBundle:Admin:postDelete }
     requirements:

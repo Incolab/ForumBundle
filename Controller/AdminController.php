@@ -142,12 +142,37 @@ class AdminController extends Controller
         );
     }
     
-    public function topicDeleteAction()
+    public function topicDeleteAction($slugParentCat, $slugCat, $slugTopic)
     {
+        $topic = $this->getDoctrine()->getRepository("IncolabForumBundle:Topic")
+                ->getTopicBySlugTopicCatParentCat($slugTopic, $slugCat, $slugParentCat);
         
+        if ($topic === null) {
+            throw $this->createNotFoundException("This topic don\'t exists");
+        }
+        
+        $category = $topic->getCategory();
+        $parentCat = $category->getParent();
+        $nbposts = $topic->getNumPosts();
+        
+        $category->setNumPosts($category->getNumPosts() - $nbposts);
+        $category->setNumTopics($category->getNumTopics() - 1);
+        
+        $parentCat->setNumPosts($parentCat->getNumPosts() - $nbposts);
+        $parentCat->setNumTopics($parentCat->getNumTopics() - 1);
+        
+        $em = $this->getDoctrine()->getManager();
+        $em->remove($topic);
+        $em->persist($category);
+        $em->persist($parentCat);
+        $em->flush();
+        
+        $this->addFlash("success", "The topic has been deleted");
+        
+        return $this->redirectToRoute('incolab_forum_admin_homepage');
     }
     
-    public function postDeleteAction()
+    public function postDeleteAction($slugParentCat, $slugCat, $slugTopic, $postid)
     {
         
     }

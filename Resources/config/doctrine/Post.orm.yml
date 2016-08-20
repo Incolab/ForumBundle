@@ -23,6 +23,8 @@ Incolab\ForumBundle\Entity\Post:
             targetEntity: Incolab\ForumBundle\Entity\Topic
             cascade: ["persist"]
             inversedBy: replies
+            joinColumn:
+                onDelete: CASCADE
         author:
             targetEntity: UserBundle\Entity\User
             

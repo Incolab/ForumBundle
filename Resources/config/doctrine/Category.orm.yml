@@ -35,10 +35,16 @@ Incolab\ForumBundle\Entity\Category:
         parent:
             targetEntity: Incolab\ForumBundle\Entity\Category
             inversedBy: childs
+            joinColumn:
+                onDelete: CASCADE
         lastTopic:
             targetEntity: Incolab\ForumBundle\Entity\Topic
+            joinColumn:
+                onDelete: SET NULL
         lastPost:
             targetEntity: Incolab\ForumBundle\Entity\Post
+            joinColumn:
+                onDelete: SET NULL
     manyToMany:
         readRoles:
             targetEntity: Incolab\ForumBundle\Entity\ForumRole

@@ -49,4 +49,6 @@ Incolab\ForumBundle\Entity\Topic:
             targetEntity: Incolab\ForumBundle\Entity\Category
             cascade: ["persist"]
             inversedBy: topics
+            joinColumn:
+                onDelete: CASCADE
     lifecycleCallbacks: {  }
