@@ -2,7 +2,6 @@
 
 namespace Incolab\ForumBundle\Repository;
 
-use UserBundle\Entity\User;
 use Incolab\ForumBundle\Entity\Topic;
 
 /**
@@ -13,11 +12,10 @@ use Incolab\ForumBundle\Entity\Topic;
  */
 class PostRepository extends \Doctrine\ORM\EntityRepository
 {
-    public static $strPostForEdit = "SELECT p, "
-            . "partial t.{id, slug}, partial c.{id, slug}, partial q.{id, slug} "
+    public static $strGetPost = "SELECT p, t, c, q "
             . "FROM IncolabForumBundle:Post p "
             . "LEFT JOIN p.topic t LEFT JOIN t.category c LEFT JOIN c.parent q "
-            . "WHERE p.id = :id AND p.author = :author AND t.slug = :slugTopic "
+            . "WHERE p.id = :id AND t.slug = :slugTopic "
             . "AND c.slug = :slugCat AND q.slug = :slugParentCat";
     
     public static $strGetNbPostByTopic = "SELECT COUNT(p.id) "
@@ -35,17 +33,16 @@ class PostRepository extends \Doctrine\ORM\EntityRepository
 
 
 
-    public function getPostForEdit($slugParentCat, $slugCat, $slugTopic, $postId, User $author)
+    public function getPost($slugParentCat, $slugCat, $slugTopic, $postId)
     {
         $parameters = array(
             ':id' => $postId,
-            ':author' => $author,
             ':slugTopic' => $slugTopic,
             ':slugCat' => $slugCat,
             ':slugParentCat' => $slugParentCat
         );
         
-        $query = $this->_em->createQuery(self::$strPostForEdit)
+        $query = $this->_em->createQuery(self::$strGetPost)
                 ->setParameters($parameters);
         return $query->getOneOrNullResult();
     }

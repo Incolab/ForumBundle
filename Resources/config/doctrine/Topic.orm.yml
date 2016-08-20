@@ -38,6 +38,8 @@ Incolab\ForumBundle\Entity\Topic:
         lastPost:
             targetEntity: Incolab\ForumBundle\Entity\Post
             cascade: ["persist"]
+            joinColumn:
+                onDelete: SET NULL
     oneToMany:
         replies:
             targetEntity: Incolab\ForumBundle\Entity\Post

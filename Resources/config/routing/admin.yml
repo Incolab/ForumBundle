@@ -30,7 +30,7 @@ incolab_forum_admin_child_category_modify:
 #  methods: [POST]
 
 #Topics
-incolab_forum_topic_delete:
+incolab_forum_admin_topic_delete:
     path: /categories/{slugParentCat}/{slugCat}/delete/{slugTopic}
     defaults: { _controller: IncolabForumBundle:Admin:topicDelete }
     requirements:
@@ -39,8 +39,8 @@ incolab_forum_topic_delete:
         slugTopic: "[A-z0-9_-]+"
 
 # Posts
-incolab_forum_post_delete:
-    path: /categories/{parentCatSlug}/{catSlug}/{slug}/delete/{id}
+incolab_forum_admin_post_delete:
+    path: /categories/{slugParentCat}/{slugCat}/{slugTopic}/delete/{postId}
     defaults: { _controller: IncolabForumBundle:Admin:postDelete }
     requirements:
         parentCatSlug: "[A-z0-9_-]+"
@@ -49,11 +49,11 @@ incolab_forum_post_delete:
         id: "[0-9]+"
         
 # ForumRoles
-incolab_forum_role_add:
+incolab_forum_admin_role_add:
     path: /roles/add
     defaults: { _controller: IncolabForumBundle:Admin:roleAdd }
     
-incolab_forum_rol_delete:
+incolab_forum_admin_role_delete:
     path: /roles/delete/{role}
     defaults: { _controller: IncolabForumBundle:Admin:roleDelete }
     requirements:

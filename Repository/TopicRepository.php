@@ -12,9 +12,7 @@ use Incolab\ForumBundle\Entity\Category;
  */
 class TopicRepository extends \Doctrine\ORM\EntityRepository {
 
-    public static $strGetTopicQuery = "SELECT t, f, r, crr, cwr, "
-            . "partial c.{id, name, slug}, partial p.{id, name, slug}, "
-            . "fa, ra "
+    public static $strGetTopicQuery = "SELECT t, f, r, crr, cwr, c, p, fa, ra "
             . "FROM IncolabForumBundle:Topic t LEFT JOIN t.firstPost f "
             . "LEFT JOIN t.replies r LEFT JOIN t.category c LEFT JOIN c.parent p "
             . "LEFT JOIN f.author fa LEFT JOIN r.author ra "

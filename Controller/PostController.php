@@ -41,10 +41,14 @@ class PostController extends Controller {
         }
 
         $post = $this->getDoctrine()->getRepository('IncolabForumBundle:Post')
-                ->getPostForEdit($slugParentCat, $slugCat, $slugTopic, $postId, $this->getUser());
+                ->getPost($slugParentCat, $slugCat, $slugTopic, $postId);
 
         if ($post === null) {
-            throw $this->createNotFoundException('This post don\'t exists or you aren\'t allowed to edit.');
+            throw $this->createNotFoundException('This post don\'t exists.');
+        }
+        
+        if ($post->getAuthor() !== $this->getUser()) {
+            throw $this->createAccessDeniedException("You aren't allowed to edit this post");
         }
         
         if ($post->getTopic()->isBuried() || $post->getTopic()->isClosed()) {
