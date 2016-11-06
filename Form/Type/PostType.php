@@ -33,27 +33,9 @@ class PostType extends AbstractType
                     },
                     // Before persist
                     function ($submittedContent) {
-                        // delete all html tags autoclose tags and strip_tags argument
-                        $dom = new \DOMDocument();
-                        $dom->loadHTML($submittedContent);
-                        if (!$dom) {
-                            return "<p>This post is not valid.</p>";
-                        }
-                        // on retaille youtube
-                        $iframes = $dom->getElementsByTagName("iframe");
-                        foreach ($iframes as $iframe) {
-                            $iframe->setAttribute("height", "252");
-                            $iframe->setAttribute("width", "448");
-                        }
-                        
-                        //on retaille les images
-                        $imgs = $dom->getElementsByTagName("img");
-                        foreach ($imgs as $element) {
-                            $element->setAttribute("width", "448");
-                        }
-                        
-                        $cleaned = strip_tags($dom->saveHTML(), '<br><p><a><ul><ol><li><strong><em><span><iframe><img>');
-                        return $cleaned;
+                        $submittedContent = htmlspecialchars($submittedContent, ENT_QUOTES, "UTF-8");
+                        $parser = new \Incolab\ForumBundle\BBCodeParser\BBCodeParser();
+                        return $parser->parse($submittedContent);
                     }
                 )
             );
