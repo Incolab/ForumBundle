@@ -26,7 +26,7 @@
 
 namespace Incolab\ForumBundle\Model;
 
-use Doctrine\ORM\EntityManager;
+use Incolab\DBALBundle\Service\DBALService;
 use Incolab\ForumBundle\Entity\Post;
 
 /**
@@ -37,31 +37,49 @@ use Incolab\ForumBundle\Entity\Post;
 class PostManager
 {
     
-    private $entityManager;
+    private $database;
     
-    public function __construct(EntityManager $entityManager)
+    public function __construct(DBALService $database)
     {
-        $this->entityManager = $entityManager;
+        $this->database = $database;
     }
     
     public function add(Post $post)
     {
-        $topic = $post->getTopic();
+        $postRepository = $this->database->getRepository("IncolabForumBundle:Post");
+        $postUp = $postRepository->persist($post);
+        
+        $topic = $postUp->getTopic();
         
         $topic->incrementNumPosts();
-        $topic->setLastPost($post);
+        $topic->setLastPost($postUp);
+        $topicRepository = $this->database->getRepository("IncolabForumBundle:Topic");
+        $topicUp = $topicRepository->persist($topic);
         
         $category = $topic->getCategory();
         $category->incrementNumPosts()
-                ->setLastPost($post);
+                ->setLastPost($postUp);
         
         $parent = $category->getParent();
         $parent->incrementNumPosts()
-                ->setLastPost($post);
+                ->setLastPost($postUp);
         
-        $this->entityManager->persist($post);
-        $this->entityManager->persist($category);
-        $this->entityManager->persist($parent);
-        $this->entityManager->flush();
+        $categoryRepository = $this->database->getRepository("IncolabForumBundle:Category");
+        $categoryRepository->persist($parent);
+        $categoryRepository->persist($category);
+    }
+    
+    public function delete(Post $post)
+    {
+        $this->database->getRepository("IncolabForumBundle:Post")->remove($post);
+        /*
+        $topicRepository = $this->database->getRepository('IncolabForumBundle:Topic');
+        $topic = $topicRepository->getTopic($slugTopic, $slugCat, $slugParentCat);
+        
+         * 
+         */
+        
+        $topic = $post->getTopic();
+        $category = $topic->getCategory();
     }
 }

@@ -19,12 +19,12 @@ class CategoryController extends Controller {
             }
         }
         if (!isset($readRoles)) {
-            $readRoles = $this->getDoctrine()
+            $readRoles[] = $this->get("db")
                             ->getRepository('IncolabForumBundle:ForumRole')->findByName('ROLE_PUBLIC');
         }
 
-        $parentCategory = $this->getDoctrine()->getrepository('IncolabForumBundle:Category')
-                ->getParentCategoryBySlug($readRoles, $slugParentCat);
+        $parentCategory = $this->get("db")->getrepository('IncolabForumBundle:Category')
+                ->getParentCategoryBySlug($slugParentCat, $readRoles);
 
         if ($parentCategory === null) {
             throw $this->createNotFoundException('Aucune Catégorie pour cette adresse.');
@@ -46,8 +46,8 @@ class CategoryController extends Controller {
             }
         }
 
-        $category = $this->getDoctrine()->getrepository('IncolabForumBundle:Category')
-                ->getCategory($slugCat, $slugParentCat, $page, $elmtsByPage);
+        $category = $this->get("db")->getrepository('IncolabForumBundle:Category')
+                ->getCategory($slugCat, $slugParentCat, true, $page, $elmtsByPage);
 
         if ($category === null) {
             throw $this->createNotFoundException('Aucune Catégorie pour cette adresse.');
@@ -59,7 +59,7 @@ class CategoryController extends Controller {
         ];
 
         $pagination = [
-            "nbPages" => ceil($this->getDoctrine()->getRepository("IncolabForumBundle:Topic")
+            "nbPages" => ceil($this->get("db")->getRepository("IncolabForumBundle:Topic")
                             ->getNbTopicByCat($category) / $elmtsByPage),
             "current" => $page
         ];
@@ -68,8 +68,8 @@ class CategoryController extends Controller {
         }
 
         if (!$this->get('security.authorization_checker')->isGranted('IS_AUTHENTICATED_FULLY')) {
-            $role = $this->getDoctrine()
-                            ->getRepository('IncolabForumBundle:ForumRole')->findOneByName('ROLE_PUBLIC');
+            $role = $this->get("db")
+                            ->getRepository('IncolabForumBundle:ForumRole')->findByName('ROLE_PUBLIC');
 
             if (!$category->hasReadRole($role)) {
                 throw $this->createAccessDeniedException("Permission denied");
@@ -114,7 +114,7 @@ class CategoryController extends Controller {
             }
         }
 
-        $topic = $this->getDoctrine()->getRepository('IncolabForumBundle:Topic')
+        $topic = $this->get("db")->getRepository('IncolabForumBundle:Topic')
                 ->getTopic($slugTopic, $slugCat, $slugParentCat, $page, $elmtsByPage);
 
         if ($topic === null) {
@@ -128,7 +128,7 @@ class CategoryController extends Controller {
         $paramsRender['topic'] = $topic;
 
         $pagination = [
-            "nbPages" => ceil($this->getDoctrine()->getRepository("IncolabForumBundle:Post")
+            "nbPages" => ceil($this->get("db")->getRepository("IncolabForumBundle:Post")
                             ->getNbPostsByTopic($topic) / $elmtsByPage),
             "current" => $page
         ];
@@ -139,8 +139,8 @@ class CategoryController extends Controller {
 
 
         if (!$this->get('security.authorization_checker')->isGranted('IS_AUTHENTICATED_FULLY')) {
-            $role = $this->getDoctrine()
-                            ->getRepository('IncolabForumBundle:ForumRole')->findOneByName('ROLE_PUBLIC');
+            $role = $this->get("db")
+                            ->getRepository('IncolabForumBundle:ForumRole')->findByName('ROLE_PUBLIC');
 
             if (!$topic->getCategory()->hasReadRole($role)) {
                 throw $this->createAccessDeniedException("Permission denied");
@@ -209,7 +209,7 @@ class CategoryController extends Controller {
             throw $this->createAccessDeniedException();
         }
 
-        $parentCat = $this->getDoctrine()->getRepository('IncolabForumBundle:Category')
+        $parentCat = $this->get("db")->getRepository('IncolabForumBundle:Category')
                 ->getCategoryForInsertTopic($slugCat, $slugParentCat);
 
         // le form sera la [GET]
@@ -236,7 +236,7 @@ class CategoryController extends Controller {
             throw $this->createAccessDeniedException();
         }
 
-        $parentCat = $this->getDoctrine()->getRepository('IncolabForumBundle:Category')
+        $parentCat = $this->get("db")->getRepository('IncolabForumBundle:Category')
                 ->getCategoryForInsertTopic($slugCat, $slugParentCat);
 
         // traitement du [POST]
@@ -254,6 +254,7 @@ class CategoryController extends Controller {
         if ($form->isSubmitted() && $form->isValid()) {
             $topic->setAuthor($this->get('security.token_storage')->getToken()->getUser());
             $category = $parentCat->getChildBySlug($slugCat);
+            $category->setParent($parentCat);
             $topic->setCategory($category);
             $this->container->get('incolab_forum.topic_manager')->add($topic);
 
@@ -275,8 +276,8 @@ class CategoryController extends Controller {
             throw $this->createAccessDeniedException();
         }
 
-        $topic = $this->getDoctrine()->getRepository('IncolabForumBundle:Topic')
-                ->getTopicForInsertPost($slugTopic, $slugCat, $slugParentCat);
+        $topic = $this->get("db")->getRepository('IncolabForumBundle:Topic')
+                ->getTopic($slugTopic, $slugCat, $slugParentCat);
 
         if ($topic === null) {
             throw $this->createNotFoundException('This topic don\'t exists');

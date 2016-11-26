@@ -103,6 +103,20 @@ class Topic
         $this->replies = new \Doctrine\Common\Collections\ArrayCollection();
         
     }
+    
+    /**
+     * Set id
+     *
+     * @param string $id
+     *
+     * @return Topic
+     */
+    public function setId($id)
+    {
+        $this->id = $id;
+
+        return $this;
+    }
 
     /**
      * Get id

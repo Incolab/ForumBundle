@@ -52,6 +52,20 @@ class Post
     {
         $this->createdAt = new \DateTime();
     }
+    
+    /**
+     * Set id
+     *
+     * @param string $id
+     *
+     * @return Post
+     */
+    public function setId($id)
+    {
+        $this->id = $id;
+
+        return $this;
+    }
 
     /**
      * Get id

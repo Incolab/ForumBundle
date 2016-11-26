@@ -83,12 +83,27 @@ class Category
      */
     public function __construct()
     {
+        $this->parent = null;
         $this->childs = new \Doctrine\Common\Collections\ArrayCollection();
         $this->topics = new \Doctrine\Common\Collections\ArrayCollection();
         $this->readRoles = new \Doctrine\Common\Collections\ArrayCollection();
         $this->writeRoles = new \Doctrine\Common\Collections\ArrayCollection();
         $this->numPosts = 0;
         $this->numTopics = 0;
+    }
+    
+    /**
+     * Set id
+     *
+     * @param string $id
+     *
+     * @return Category
+     */
+    public function setId($id)
+    {
+        $this->id = $id;
+
+        return $this;
     }
 
     /**
@@ -329,7 +344,9 @@ class Category
      */
     public function addChild(\Incolab\ForumBundle\Entity\Category $child)
     {
-        $this->childs[] = $child;
+        if (!$this->hasChild($child)) {
+            $this->childs[] = $child;
+        }
 
         return $this;
     }
@@ -367,6 +384,15 @@ class Category
             }
         }
     }
+    
+    public function hasChild(\Incolab\ForumBundle\Entity\Category $category) {
+        foreach ($this->childs as $elmt) {
+            if ($elmt->getId() === $category->getId()) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     /**
      * Add topic
@@ -377,7 +403,9 @@ class Category
      */
     public function addTopic(\Incolab\ForumBundle\Entity\Topic $topic)
     {
-        $this->topics[] = $topic;
+        if (!$this->hasTopic($topic)) {
+            $this->topics[] = $topic;
+        }
 
         return $this;
     }
@@ -390,6 +418,15 @@ class Category
     public function removeTopic(\Incolab\ForumBundle\Entity\Topic $topic)
     {
         $this->topics->removeElement($topic);
+    }
+    
+    public function hasTopic(\Incolab\ForumBundle\Entity\Topic $topic) {
+        foreach ($this->topics as $elmt) {
+            if ($elmt->getId() == $topic->getId()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -483,7 +520,7 @@ class Category
      */
     public function addReadRole(\Incolab\ForumBundle\Entity\ForumRole $readRole)
     {
-        if (!$this->readRoles->contains($readRole)) {
+        if (!$this->hasReadRole($readRole)) {
             $this->readRoles[] = $readRole;
         }
 
@@ -519,7 +556,12 @@ class Category
      */
     public function hasReadRole(\Incolab\ForumBundle\Entity\ForumRole $readRole)
     {
-        return $this->readRoles->contains($readRole);
+        foreach ($this->readRoles as $role) {
+            if ($role == $readRole) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -531,8 +573,8 @@ class Category
      */
     public function addWriteRole(\Incolab\ForumBundle\Entity\ForumRole $writeRole)
     {
-        if (!$this->writeRoles->contains($writeRole)) {
-            $this->readRoles[] = $writeRole;
+        if (!$this->hasWriteRole($writeRole)) {
+            $this->writeRoles[] = $writeRole;
         }
 
         return $this;
@@ -567,7 +609,12 @@ class Category
      */
     public function hasWriteRole(\Incolab\ForumBundle\Entity\ForumRole $writeRole)
     {
-        return $this->writeRoles->contains($writeRole);
+        foreach ($this->writeRoles as $role) {
+            if ($role == $writeRole) {
+                return true;
+            }
+        }
+        return false;
     }
     
     /**

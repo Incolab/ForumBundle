@@ -19,6 +19,20 @@ class ForumRole
 
 
     /**
+     * Set id
+     *
+     * @param string $id
+     *
+     * @return ForumRole
+     */
+    public function setId($id)
+    {
+        $this->id = $id;
+
+        return $this;
+    }
+    
+    /**
      * Get id
      *
      * @return int

@@ -10,7 +10,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Incolab\DBALBundle\Form\Type\EntityType;
 
 class CategoryType extends AbstractType
 {
@@ -33,6 +33,10 @@ class CategoryType extends AbstractType
                     'allow_delete' => true,
                     'entry_options'  => array(
                         'class' => 'IncolabForumBundle:ForumRole',
+                        'query' => function (\Incolab\DBALBundle\Service\DBALService $database) {
+                            $rolesRepository = $database->getRepository("IncolabForumBundle:ForumRole");
+                            return $rolesRepository->findAll();
+                        },
                         'choice_label' => 'name'
                     )
                 )
@@ -46,6 +50,11 @@ class CategoryType extends AbstractType
                     'allow_delete' => true,
                     'entry_options'  => array(
                         'class' => 'IncolabForumBundle:ForumRole',
+                        'query' => function (\Incolab\DBALBundle\Service\DBALService $database) {
+                            $rolesRepository = $database->getRepository("IncolabForumBundle:ForumRole");
+                            
+                            return $rolesRepository->findAll();
+                        },
                         'choice_label' => 'name'
                     )
                 )

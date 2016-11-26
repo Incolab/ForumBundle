@@ -40,14 +40,15 @@ class PostController extends Controller {
             throw $this->createAccessDeniedException();
         }
 
-        $post = $this->getDoctrine()->getRepository('IncolabForumBundle:Post')
-                ->getPost($slugParentCat, $slugCat, $slugTopic, $postId);
+        $postRepository = $this->get("db")->getRepository('IncolabForumBundle:Post');
+        $post = $postRepository->getPost($slugParentCat, $slugCat, $slugTopic, $postId);
 
         if ($post === null) {
             throw $this->createNotFoundException('This post don\'t exists.');
         }
         
-        if ($post->getAuthor() !== $this->getUser()) {
+        $user = $this->getUser();
+        if ($post->getAuthor()->getId() != $user->getId()) {
             throw $this->createAccessDeniedException("You aren't allowed to edit this post");
         }
         
@@ -61,9 +62,7 @@ class PostController extends Controller {
 
         if ($postForm->isSubmitted() && $postForm->isValid()) {
             $post->setUpdatedAt(new \DateTime());
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($post);
-            $em->flush();
+            $postRepository->persist($post);
 
             $this->addFlash('success', 'Your post has been edited.');
 
@@ -84,17 +83,17 @@ class PostController extends Controller {
     public function permalinkAction($slugParentCat, $slugCat, $slugTopic, $postId) {
         $elmtsByPage = 10;
 
-        $pagination["current"] = ceil($this->getDoctrine()->getRepository("IncolabForumBundle:Post")
+        $pagination["current"] = ceil($this->get("db")->getRepository("IncolabForumBundle:Post")
                             ->getNbPostsUntilIdByTopicSlug($slugTopic, $postId) / $elmtsByPage);
         
-        $topic = $this->getDoctrine()->getRepository('IncolabForumBundle:Topic')
+        $topic = $this->get("db")->getRepository('IncolabForumBundle:Topic')
                 ->getTopic($slugTopic, $slugCat, $slugParentCat, $pagination["current"], $elmtsByPage);
         
         if ($topic === null) {
             throw $this->createNotFoundException('This topic don\'t exists');
         }
         
-        $pagination["nbPages"] = ceil($this->getDoctrine()->getRepository("IncolabForumBundle:Post")
+        $pagination["nbPages"] = ceil($this->get("db")->getRepository("IncolabForumBundle:Post")
                             ->getNbPostsByTopic($topic) / $elmtsByPage);
         $paramsRender["topic"] = $topic;
         
@@ -103,8 +102,8 @@ class PostController extends Controller {
         }
 
         if (!$this->get('security.authorization_checker')->isGranted('IS_AUTHENTICATED_FULLY')) {
-            $role = $this->getDoctrine()
-                            ->getRepository('IncolabForumBundle:ForumRole')->findOneByName('ROLE_PUBLIC');
+            $role = $this->get("db")
+                            ->getRepository('IncolabForumBundle:ForumRole')->findByName('ROLE_PUBLIC');
 
             if (!$topic->getCategory()->hasReadRole($role)) {
                 throw $this->createAccessDeniedException("Permission denied");

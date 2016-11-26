@@ -27,7 +27,7 @@
 namespace Incolab\ForumBundle\Model;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\ORM\EntityManager;
+use Incolab\DBALBundle\Service\DBALService;
 use Incolab\CoreBundle\Transliterator\Transliterator;
 
 use Incolab\ForumBundle\Entity\Category;
@@ -40,37 +40,40 @@ use Incolab\ForumBundle\Entity\Category;
 class CategoryManager
 {
     private $transliterator;
-    private $entityManager;
+    private $database;
     
-    public function __construct(Transliterator $transliterator, EntityManager $entityManager)
+    public function __construct(Transliterator $transliterator, DBALService $database)
     {
         $this->transliterator = $transliterator;
-        $this->entityManager = $entityManager;
+        $this->database = $database;
     }
     
     public function addParent($categories, Category $category)
     {
-        $category->setParent(null);
+        $this->save($category, $categories);
+    }
+    
+    public function addChild(Category $category)
+    {
+         $this->save($category);
+    }
+    
+    public function save(Category $category, $categories = [])
+    {
         $category->setSlug($this->transliterator->urlize($category->getName()));
         
-        $this->entityManager->persist($category);
+        $categoryRepository = $this->database->getRepository("IncolabForumBundle:Category");
+        $categoryRepository->persist($category);
+        
+        $forumRoleRepository = $this->database->getRepository("IncolabForumBundle:ForumRole");
+        $forumRoleRepository->persistCategoryRoles($category);
         
         // on change les positions des autres cat
         foreach ($categories as $element) {
             if ($category->getPosition() <= $element->getPosition()) {
                 $element->incrementPosition();
-                $this->entityManager->persist($element);
+                $categoryRepository->persist($element);
             }
         }
-        
-        $this->entityManager->flush();
-    }
-    
-    public function addChild(Category $category)
-    {
-        $category->setSlug($this->transliterator->urlize($category->getName()));
-        
-        $this->entityManager->persist($category);
-        $this->entityManager->flush();
     }
 }
