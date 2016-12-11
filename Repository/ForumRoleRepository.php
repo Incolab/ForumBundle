@@ -64,6 +64,26 @@ class ForumRoleRepository extends Manager {
 
         return $roles;
     }
+    
+    public function findByUser(\UserBundle\Security\User\User $user) {
+        $sql = "SELECT ufr.user_id AS ufr_user_id, ufr.forum_role_id AS ufr_forum_role_id, "
+                . "fr.id AS fr_id, fr.name AS fr_name "
+                . "FROM forum_role fr "
+                . "LEFT JOIN fos_user_forum_roles ufr ON fr.id = ufr.forum_role_id "
+                . "WHERE ufr.user_id = ?";
+        $stmt = $this->dbal->prepare($sql);
+        $stmt->bindValue(1, $user->getId(), \PDO::PARAM_INT);
+        $stmt->execute();
+
+        $roles = [];
+
+        while ($res = $stmt->fetch()) {
+            $roles[] = self::hydrateForumRole($res, "fr");
+        }
+        $stmt->closeCursor();
+
+        return $roles;
+    }
 
     public function findReadByCategory(Category $category) {
         $sql = "SELECT crr.category_id AS crr_category_id, crr.forum_role_id AS crr_forum_role_id, "
@@ -200,6 +220,43 @@ class ForumRoleRepository extends Manager {
                 . "VALUES (?,?)";
         $stmt = $this->dbal->prepare($sql);
         $stmt->bindValue(1, $category_id, \PDO::PARAM_INT);
+        $stmt->bindValue(2, $role_id, \PDO::PARAM_INT);
+        $stmt->execute();
+        $stmt->closeCursor();
+    }
+    
+    public function persistUserRoles(\UserBundle\Entity\User $user) {
+        $beforeRoles = $this->findByUser($user);
+        foreach ($beforeRoles as $role) {
+            if (!$user->hasForumRole($role)) {
+                // on delete la jointure
+                $this->deleteUserRole($user->getId(), $role->getId());
+            }
+        }
+        foreach ($user->getForumRoles() as $role) {
+            if (!$this->checkRole($beforeRoles, $role)) {
+                // on ajoute la jointure
+                $this->addUserRole($user->getId(), $role->getId());
+            }
+        }
+    }
+    
+    private function deleteUserRole($user_id, $role_id)
+    {
+        $sql = "DELETE FROM fos_user_forum_roles WHERE user_id = ? AND forum_role_id = ?";
+        $stmt = $this->dbal->prepare($sql);
+        $stmt->bindValue(1, $user_id, \PDO::PARAM_INT);
+        $stmt->bindValue(2, $role_id, \PDO::PARAM_INT);
+        $stmt->execute();
+        $stmt->closeCursor();
+    }
+    
+    private function addUserRole($user_id, $role_id)
+    {
+        $sql = "INSERT INTO fos_user_forum_roles (user_id, forum_role_id) "
+                . "VALUES (?,?)";
+        $stmt = $this->dbal->prepare($sql);
+        $stmt->bindValue(1, $user_id, \PDO::PARAM_INT);
         $stmt->bindValue(2, $role_id, \PDO::PARAM_INT);
         $stmt->execute();
         $stmt->closeCursor();
