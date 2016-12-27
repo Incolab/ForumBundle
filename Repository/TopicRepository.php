@@ -46,7 +46,7 @@ class TopicRepository extends Manager {
      * TABLE "forum_category" CONSTRAINT "fk_21bf9426673465a3" FOREIGN KEY (last_topic_id) REFERENCES forum_topic(id) ON DELETE SET NULL
      * TABLE "forum_post" CONSTRAINT "fk_996bcc5a1f55203d" FOREIGN KEY (topic_id) REFERENCES forum_topic(id) ON DELETE CASCADE
      */
-    
+
     const SQL_NBTOPICBYCAT = "SELECT COUNT(t.id) FROM forum_topic t WHERE t.category_id = ?";
     const SQL_TOPIC = "SELECT t.id AS t_id, t.subject AS t_subject, t.slug AS t_slug, "
             . "t.created_at AS t_created_at, t.is_pinned AS t_is_pinned, t.is_buried AS t_is_buried, "
@@ -68,7 +68,8 @@ class TopicRepository extends Manager {
             . "LEFT JOIN forum_category c ON t.category_id = c.id "
             . "LEFT JOIN forum_category pc ON c.parent_id = pc.id "
             . "LEFT JOIN fos_user ta ON t.author_id = ta.id "
-            . "WHERE t.slug = ? AND c.slug = ? AND pc.slug = ?";
+            . "WHERE t.slug = ? AND c.slug = ? AND pc.slug = ? "
+            . "%s";
     const SQL_TOPICBYCAT = "SELECT t.id AS t_id, t.subject AS t_subject, t.slug AS t_slug, "
             . "t.created_at AS t_created_at, t.is_pinned AS t_is_pinned, t.is_buried AS t_is_buried, "
             . "ta.id AS ta_id, ta.username AS ta_username, ta.avatar AS ta_avatar, "
@@ -111,14 +112,17 @@ class TopicRepository extends Manager {
     }
 
     public function getTopic($slugTopic, $slugCat, $slugParentCat, $page = 1, $maxResults = 10) {
-        
-        $stmt = $this->dbal->prepare(self::SQL_TOPIC);
+        $sql = sprintf(self::SQL_TOPIC, "LIMIT ? OFFSET ?");
+        $stmt = $this->dbal->prepare($sql);
         $stmt->bindValue(1, $slugTopic, \PDO::PARAM_STR);
         $stmt->bindValue(2, $slugCat, \PDO::PARAM_STR);
         $stmt->bindValue(3, $slugParentCat, \PDO::PARAM_STR);
-        
+        $stmt->bindValue(4, $maxResults, \PDO::PARAM_INT);
+        $offset = $maxResults * ($page - 1);
+        $stmt->bindValue(5, $offset, \PDO::PARAM_INT);
+
         $stmt->execute();
-        
+
         $topic = null;
         while ($res = $stmt->fetch()) {
             if ($topic === null) {
@@ -131,7 +135,7 @@ class TopicRepository extends Manager {
                 $lastPost->setAuthor(UserRepository::lightHydrateUser($res, "lpa"));
                 $topic->setLAstPost($lastPost);
             }
-            
+
             if (isset($res["p_id"])) {
                 $post = PostRepository::hydratePost($res, "p");
                 $post->setAuthor(UserRepository::lightHydrateUser($res, "pa"));
@@ -139,19 +143,23 @@ class TopicRepository extends Manager {
             }
         }
         $stmt->closeCursor();
-        
+
+        if ($topic === null) {
+            return $topic;
+        }
+
         $categoryRepository = new CategoryRepository($this->dbal);
         $topic->setCategory($categoryRepository->getCategory($slugCat, $slugParentCat, false));
         return $topic;
     }
-    
+
     public function getTopicsByCat(Category $category, $page = 1, $maxResults = 10) {
         $stmt = $this->dbal->prepare(self::SQL_TOPICBYCAT);
         $stmt->bindValue(1, $category->getId(), \PDO::PARAM_INT);
         $stmt->bindValue(2, $maxResults, \PDO::PARAM_INT);
         $stmt->bindValue(3, ceil(($page - 1) * $maxResults), \PDO::PARAM_INT);
         $stmt->execute();
-        
+
         $topics = [];
         while ($res = $stmt->fetch()) {
             $topic = TopicRepository::hydrateTopic($res, "t");
@@ -164,7 +172,7 @@ class TopicRepository extends Manager {
             $topics[] = $topic;
         }
         $stmt->closeCursor();
-        
+
         return $topics;
     }
 
@@ -187,17 +195,17 @@ class TopicRepository extends Manager {
         $stmt->execute();
         $res = $stmt->fetch();
         $stmt->closeCursor();
-        
+
         return (int) $res["count"];
     }
-    
+
     public function persist(Topic $topic) {
         if ($topic->getId() === null) {
             return $this->insert($topic);
         }
         return $this->update($topic);
     }
-    
+
     private function insert(Topic $topic) {
         $stmt = $this->dbal->prepare(self::SQL_INSERT);
         $stmt->bindValue(1, $topic->getSubject(), \PDO::PARAM_STR);
@@ -224,7 +232,7 @@ class TopicRepository extends Manager {
         $stmt->execute();
 
         $stmt->closeCursor();
-        
+
         $topic->setId($this->dbal->lastInsertId("forum_topic_id_seq"));
 
         return $topic;
