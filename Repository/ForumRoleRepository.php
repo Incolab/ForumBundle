@@ -128,18 +128,32 @@ class ForumRoleRepository extends Manager {
     public function persist(ForumRole $role)
     {
         if ($role->getId() !== null) {
-            return $this->add($role);
+            return $this->modify($role);
         }
-        
-        return $this->modify($role);
+        return $this->add($role);
     }
     
     private function add(ForumRole $role)
     {
+        $sql = "INSERT INTO forum_role (id, name) VALUES(nextval('forum_role_id_seq'), ?)";
+        $stmt = $this->dbal->prepare($sql);
+        $stmt->bindValue(1, $role->getName(), \PDO::PARAM_STR);
+        $stmt->execute();
+        $stmt->closeCursor();
+        $role->setId($this->dbal->lastInsertId("forum_role_id_seq"));
+        
         return $role;
     }
     private function modify(ForumRole $role)
     {
+        $sql = "UPDATE forum_role SET name = ? WHERE id = ?";
+        $stmt = $this->dbal->prepare($sql);
+        $stmt->bindValue(1, $role->getName(), \PDO::PARAM_STR);
+        $stmt->bindValue(2, $role->getId(), \PDO::PARAM_INT);
+        
+        $stmt->execute();
+        $stmt->closeCursor();
+        
         return $role;
     }
 
@@ -260,6 +274,12 @@ class ForumRoleRepository extends Manager {
         $stmt->bindValue(2, $role_id, \PDO::PARAM_INT);
         $stmt->execute();
         $stmt->closeCursor();
+    }
+    
+    public function create_database() {
+        // will be moved
+        $shemaCreate = new \Incolab\ForumBundle\Resources\SchemaDatabase\CreateShema($this->dbal);
+        return $shemaCreate->create_database();
     }
 
 }

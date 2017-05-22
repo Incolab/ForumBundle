@@ -57,9 +57,9 @@ class CategoryRepository extends Manager {
             . "LEFT JOIN forum_category_read_roles crr ON c.id = crr.category_id LEFT JOIN forum_role fr ON fr.id = crr.forum_role_id "
             . "LEFT JOIN forum_category ch ON c.id = ch.parent_id "
             . "LEFT JOIN forum_category_read_roles chrr ON ch.id = chrr.category_id LEFT JOIN forum_role chfr ON chfr.id = chrr.forum_role_id "
-            . "LEFT JOIN forum_topic lt ON ch.last_topic_id = lt.id LEFT JOIN fos_user alt ON lt.author_id = alt.id "
+            . "LEFT JOIN forum_topic lt ON ch.last_topic_id = lt.id LEFT JOIN user_account alt ON lt.author_id = alt.id "
             . "LEFT JOIN forum_post lp ON ch.last_post_id = lp.id LEFT JOIN forum_topic lpt ON lp.topic_id = lpt.id "
-            . "LEFT JOIN fos_user alp ON lp.author_id = alp.id "
+            . "LEFT JOIN user_account alp ON lp.author_id = alp.id "
             . "WHERE c.parent_id IS NULL AND fr.id IN (?) OR chfr.id IN (?) "
             . "ORDER BY c.position ASC, ch.position ASC";
     const SQL_CHILDSBYCAT = "ch.id AS ch_id, ch.parent_id AS ch_parent_id, ch.last_topic_id AS ch_last_topic_id, "
@@ -90,9 +90,9 @@ class CategoryRepository extends Manager {
             . "LEFT JOIN forum_category_read_roles crr ON c.id = crr.category_id LEFT JOIN forum_role fr ON fr.id = crr.forum_role_id "
             . "LEFT JOIN forum_category ch ON c.id = ch.parent_id "
             . "LEFT JOIN forum_category_read_roles chrr ON ch.id = chrr.category_id LEFT JOIN forum_role chfr ON chfr.id = chrr.forum_role_id "
-            . "LEFT JOIN forum_topic lt ON ch.last_topic_id = lt.id LEFT JOIN fos_user alt ON lt.author_id = alt.id "
+            . "LEFT JOIN forum_topic lt ON ch.last_topic_id = lt.id LEFT JOIN user_account alt ON lt.author_id = alt.id "
             . "LEFT JOIN forum_post lp ON ch.last_post_id = lp.id LEFT JOIN forum_topic lpt ON lp.topic_id = lpt.id "
-            . "LEFT JOIN fos_user alp ON lp.author_id = alp.id "
+            . "LEFT JOIN user_account alp ON lp.author_id = alp.id "
             . "WHERE c.slug = ? AND c.parent_id IS NULL %s"
             . "ORDER BY ch.position ASC";
     const SQL_CATEGORYBYSLUG = "SELECT c.id AS c_id, c.parent_id AS c_parent_id, c.last_topic_id AS c_last_topic_id, "
@@ -276,8 +276,9 @@ class CategoryRepository extends Manager {
                 $category->addChild($child);
             }
         }
-
-        $categories[] = $category;
+        if ($category !== null) {
+            $categories[] = $category;
+        }
 
         return $categories;
     }
@@ -533,6 +534,12 @@ class CategoryRepository extends Manager {
         $stmt->closeCursor();
 
         return $category;
+    }
+    
+    public function create_database() {
+        // will be moved
+        $shemaCreate = new \Incolab\ForumBundle\Resources\SchemaDatabase\CreateShema($this->dbal);
+        return $shemaCreate->create_database();
     }
 
 }

@@ -214,5 +214,11 @@ class PostRepository extends Manager {
         $stmt->execute();
         $stmt->closeCursor();
     }
+    
+    public function create_database() {
+        // will be moved
+        $shemaCreate = new \Incolab\ForumBundle\Resources\SchemaDatabase\CreateShema($this->dbal);
+        return $shemaCreate->create_database();
+    }
 
 }
