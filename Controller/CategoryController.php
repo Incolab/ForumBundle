@@ -8,17 +8,20 @@ use Incolab\ForumBundle\Entity\Topic;
 use Incolab\ForumBundle\Entity\Post;
 use Incolab\ForumBundle\Form\Type\TopicType;
 use Incolab\ForumBundle\Form\Type\PostType;
+use Incolab\ForumBundle\IncolabForumEvents;
+use Incolab\ForumBundle\Event\TopicEvent;
+use Incolab\ForumBundle\Event\PostEvent;
 
 class CategoryController extends Controller {
 
     public function parentCategoryAction($slugParentCat) {
+        $readRoles = [];
         if ($this->get('security.authorization_checker')->isGranted('IS_AUTHENTICATED_FULLY')) {
             $user = $this->get('security.token_storage')->getToken()->getUser();
-            if (!$user->getForumRoles()->isEmpty()) {
-                $readRoles = $user->getForumRoles();
-            }
+            $readRoles = $this->get("db")->getRepository('IncolabForumBundle:ForumRole')->findByUser($user);
         }
-        if (!isset($readRoles)) {
+
+        if (empty($readRoles)) {
             $readRoles[] = $this->get("db")
                             ->getRepository('IncolabForumBundle:ForumRole')->findByName('ROLE_PUBLIC');
         }
@@ -77,14 +80,15 @@ class CategoryController extends Controller {
 
             return $this->render('IncolabForumBundle:Category:category.html.twig', $paramsRender);
         }
-        
+
         $user = $this->getUser();
-        
-        if (!$this->userCanRead($user->getForumRoles(), $category)) {
+        $userForumRoles = $this->get("db")->getRepository('IncolabForumBundle:ForumRole')->findByUser($user);
+
+        if (!$this->userCanRead($userForumRoles, $category)) {
             throw $this->createAccessDeniedException("Permission denied");
         }
 
-        if (!$this->userCanPost($user->getForumRoles(), $category)) {
+        if (!$this->userCanPost($userForumRoles, $category)) {
             return $this->render('IncolabForumBundle:Category:category.html.twig', $paramsRender);
         }
 
@@ -120,7 +124,7 @@ class CategoryController extends Controller {
         if ($topic === null) {
             throw $this->createNotFoundException('This topic don\'t exists');
         }
-        
+
         if ($topic->isBuried()) {
             throw $this->createAccessDeniedException('This topic is buried');
         }
@@ -148,14 +152,14 @@ class CategoryController extends Controller {
 
             return $this->render('IncolabForumBundle:Topic:show.html.twig', $paramsRender);
         }
-        
+
         $user = $this->getUser();
-        
-        if (!$this->userCanRead($user->getForumRoles(), $topic->getCategory())) {
+        $userForumRoles = $this->get("db")->getRepository('IncolabForumBundle:ForumRole')->findByUser($user);
+        if (!$this->userCanRead($userForumRoles, $topic->getCategory())) {
             throw $this->createAccessDeniedException("Permission denied");
         }
 
-        if (!$this->userCanPost($user->getForumRoles(), $topic->getCategory()) || $topic->isClosed()) {
+        if (!$this->userCanPost($userForumRoles, $topic->getCategory()) || $topic->isClosed()) {
             return $this->render('IncolabForumBundle:Topic:show.html.twig', $paramsRender);
         }
 
@@ -217,7 +221,8 @@ class CategoryController extends Controller {
             throw $this->createNotFoundException('La catégorie n\'existe pas');
         }
 
-        if (!$this->userCanPost($this->getUser()->getForumRoles(), $parentCat->getChildBySlug($slugCat))) {
+        $userForumRoles = $this->get("db")->getRepository('IncolabForumBundle:ForumRole')->findByUser($this->getUser());
+        if (!$this->userCanPost($userForumRoles, $parentCat->getChildBySlug($slugCat))) {
             throw $this->createAccessDeniedException("You are not authorized to  create a topic here.");
         }
 
@@ -244,7 +249,8 @@ class CategoryController extends Controller {
             throw $this->createNotFoundException('La catégorie n\'existe pas');
         }
 
-        if (!$this->userCanPost($this->getUser()->getForumRoles(), $parentCat->getChildBySlug($slugCat))) {
+        $userForumRoles = $this->get("db")->getRepository('IncolabForumBundle:ForumRole')->findByUser($this->getUser());
+        if (!$this->userCanPost($userForumRoles, $parentCat->getChildBySlug($slugCat))) {
             throw $this->createAccessDeniedException("You are not authorized to create a topic here.");
         }
 
@@ -256,6 +262,14 @@ class CategoryController extends Controller {
             $category = $parentCat->getChildBySlug($slugCat);
             $category->setParent($parentCat);
             $topic->setCategory($category);
+
+            $event = new TopicEvent($topic);
+            $this->get("event_dispatcher")->dispatch(IncolabForumEvents::ON_TOPIC_POST, $event);
+            if (!$event->isValid()) {
+                $this->addFlash('error', $event->getMessageStatus());
+                return $this->redirectToCategory($topic);
+            }
+
             $this->container->get('incolab_forum.topic_manager')->add($topic);
 
             return $this->redirectToRoute(
@@ -271,10 +285,31 @@ class CategoryController extends Controller {
         );
     }
 
+    private function redirectToTopic(Topic $topic) {
+        return $this->redirectToRoute(
+                        'incolab_forum_topic_show', [
+                    'slugParentCat' => $topic->getCategory()->getParent()->getSlug(),
+                    'slugCat' => $topic->getCategory()->getSlug(),
+                    'slugTopic' => $topic->getSlug()
+                        ]
+        );
+    }
+
+    private function redirectToCategory(Topic $topic) {
+        return $this->redirectToRoute(
+                        'incolab_forum_category_show', [
+                    'slugParentCat' => $topic->getCategory()->getParent()->getSlug(),
+                    'slugCat' => $topic->getCategory()->getSlug()
+                        ]
+        );
+    }
+
     public function postAddAction($slugParentCat, $slugCat, $slugTopic, Request $request) {
         if (!$this->get('security.authorization_checker')->isGranted('IS_AUTHENTICATED_FULLY')) {
             throw $this->createAccessDeniedException();
         }
+
+        $user = $this->getUser();
 
         $topic = $this->get("db")->getRepository('IncolabForumBundle:Topic')
                 ->getTopic($slugTopic, $slugCat, $slugParentCat);
@@ -282,12 +317,13 @@ class CategoryController extends Controller {
         if ($topic === null) {
             throw $this->createNotFoundException('This topic don\'t exists');
         }
-        
+
         if ($topic->isBuried() || $topic->isClosed()) {
             throw $this->createAccessDeniedException('The topic is buried or closed');
         }
 
-        if (!$this->userCanPost($this->getUser()->getForumRoles(), $topic->getCategory())) {
+        $userForumRoles = $this->get("db")->getRepository('IncolabForumBundle:ForumRole')->findByUser($user);
+        if (!$this->userCanPost($userForumRoles, $topic->getCategory())) {
             throw $this->createAccessDeniedException("You are not authorized to add a post here.");
         }
 
@@ -298,7 +334,16 @@ class CategoryController extends Controller {
         if ($form->isSubmitted() && $form->isValid()) {
 
             $post->setTopic($topic);
-            $post->setAuthor($this->get('security.token_storage')->getToken()->getUser());
+            $post->setAuthor($user);
+
+            $event = new PostEvent($post);
+            $this->get("event_dispatcher")->dispatch(IncolabForumEvents::ON_COMMENT_POST, $event);
+            if (!$event->isValid()) {
+                $this->addFlash('error', $event->getMessageStatus());
+                return $this->redirectToTopic($topic);
+            }
+
+
             $this->container->get('incolab_forum.post_manager')->add($post);
 
             $this->addFlash('success', 'Post added with success');

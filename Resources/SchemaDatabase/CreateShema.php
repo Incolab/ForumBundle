@@ -100,7 +100,7 @@ class CreateShema extends Manager {
     public function createFtSchema() {
         $table = $this->schema->createTable("forum_topic");
         $table->addColumn("id", "integer", ["unsigned" => true]);
-        $table->addColumn("first_post_id", "integer", ["unsigned" => true]);
+        $table->addColumn("first_post_id", "integer", ["unsigned" => true, "notnull" => false]);
         $table->addColumn("last_post_id", "integer", ["unsigned" => true, "notnull" => false]);
         $table->addColumn("author_id", "integer", ["unsigned" => true]);
         $table->addColumn("category_id", "integer", ["unsigned" => true]);
@@ -141,13 +141,13 @@ class CreateShema extends Manager {
         
         
         // Category
-        $fcTable->addForeignKeyConstraint($ftTable, ["last_topic_id"], ["id"], ["onDelete" => "CASCADE"]);
-        $fcTable->addForeignKeyConstraint($fpTable, ["last_post_id"], ["id"], ["onDelete" => "CASCADE"]);
+        $fcTable->addForeignKeyConstraint($ftTable, ["last_topic_id"], ["id"], ["onDelete" => "SET NULL"]);
+        $fcTable->addForeignKeyConstraint($fpTable, ["last_post_id"], ["id"], ["onDelete" => "SET NULL"]);
         $fcTable->addForeignKeyConstraint($fcTable, ["parent_id"], ["id"], ["onDelete" => "CASCADE"]);
         
         // Topic
         $ftTable->addForeignKeyConstraint($fpTable, ["first_post_id"], ["id"], ["onDelete" => "CASCADE"]);
-        $ftTable->addForeignKeyConstraint($fpTable, ["last_post_id"], ["id"], ["onDelete" => "CASCADE"]);
+        $ftTable->addForeignKeyConstraint($fpTable, ["last_post_id"], ["id"], ["onDelete" => "SET NULL"]);
         $ftTable->addForeignKeyConstraint($uaTable, ["author_id"], ["id"], ["onDelete" => "CASCADE"]);
         $ftTable->addForeignKeyConstraint($fcTable, ["category_id"], ["id"], ["onDelete" => "CASCADE"]);
         

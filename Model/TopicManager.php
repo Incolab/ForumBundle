@@ -32,30 +32,41 @@ use Incolab\ForumBundle\Entity\Topic;
 use Incolab\ForumBundle\Repository\TopicRepository;
 use Incolab\ForumBundle\Repository\PostRepository;
 use Incolab\ForumBundle\Repository\CategoryRepository;
+
 /**
  * Description of TopicManager
  *
  * @author David Salbei
  */
+class TopicManager {
 
-class TopicManager
-{
     private $transliterator;
     private $database;
-    
-    public function __construct(Transliterator $transliterator, DBALService $database)
-    {
+
+    public function __construct(Transliterator $transliterator, DBALService $database) {
         $this->transliterator = $transliterator;
         $this->database = $database;
     }
-    
-    public function add(Topic $topic)
-    {
+
+    public function add(Topic $topic) {
+        $topicRepository = $this->database->getRepository("IncolabForumBundle:Topic");
+        
         $topic->setSlug($this->transliterator->urlize($topic->getSubject()))
                 ->setLastPost(null);
-        $topicRepository = $this->database->getRepository("IncolabForumBundle:Topic");
-        $topicUp = $topicRepository->persist($topic);
+
+        // search existing slug
+        $slug = $topic->getSlug();
+        $index = 0;
+        while ($topicRepository->slugExists($slug)) {
+            $slug = sprintf("%s-%s", $topic->getSlug(), $index);
+            $index++;
+        }
+        $topic->setSlug($slug);
+
+
         
+        $topicUp = $topicRepository->persist($topic);
+
         $firstPost = $topicUp->getFirstPost();
         $firstPost->setTopic($topicUp)
                 ->setAuthor($topic->getAuthor())
@@ -64,25 +75,25 @@ class TopicManager
         $firstPostUp = $postRepository->persist($firstPost);
         $topicUp->setFirstPost($firstPostUp);
         $topicRepository->persist($topicUp);
-        
+
         $category = $topicUp->getCategory();
         $category->setLastTopic($topicUp)
                 ->incrementNumTopics()
                 ->incrementNumPosts();
-        
+
         $parentCat = $category->getParent();
         $parentCat->setLastTopic($topicUp)
                 ->incrementNumTopics()
                 ->incrementNumPosts();
-        
+
         $categoryRepository = $this->database->getRepository("IncolabForumBundle:Category");
         $categoryRepository->persist($parentCat);
         $categoryRepository->persist($category);
     }
-    
-    public function save(Topic $topic)
-    {
+
+    public function save(Topic $topic) {
         $topicRepository = $this->database->getRepository("IncolabForumBundle:Topic");
         $topicRepository->persist($topic);
     }
+
 }

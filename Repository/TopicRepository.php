@@ -41,14 +41,14 @@ class TopicRepository extends Manager {
      * "fk_853478cc12469de2" FOREIGN KEY (category_id) REFERENCES forum_category(id) ON DELETE CASCADE
      * "fk_853478cc2d053f64" FOREIGN KEY (last_post_id) REFERENCES forum_post(id) ON DELETE SET NULL
      * "fk_853478cc58056fd0" FOREIGN KEY (first_post_id) REFERENCES forum_post(id)
-     * "fk_853478ccf675f31b" FOREIGN KEY (author_id) REFERENCES fos_user(id)
+     * "fk_853478ccf675f31b" FOREIGN KEY (author_id) REFERENCES user_account(id)
      * Référencé par :
      * TABLE "forum_category" CONSTRAINT "fk_21bf9426673465a3" FOREIGN KEY (last_topic_id) REFERENCES forum_topic(id) ON DELETE SET NULL
      * TABLE "forum_post" CONSTRAINT "fk_996bcc5a1f55203d" FOREIGN KEY (topic_id) REFERENCES forum_topic(id) ON DELETE CASCADE
      */
 
     const SQL_NBTOPICBYCAT = "SELECT COUNT(t.id) FROM forum_topic t WHERE t.category_id = ?";
-    const SQL_TOPIC = "SELECT t.id AS t_id, t.subject AS t_subject, t.slug AS t_slug, "
+    const SQL_FIND = "SELECT t.id AS t_id, t.subject AS t_subject, t.slug AS t_slug, t.num_posts AS t_num_posts, "
             . "t.created_at AS t_created_at, t.is_pinned AS t_is_pinned, t.is_buried AS t_is_buried, "
             . "ta.id AS ta_id, ta.username AS ta_username, ta.avatar AS ta_avatar, "
             . "p.id AS p_id, p.topic_id AS p_topic_id, p.author_id AS p_author_id, "
@@ -60,26 +60,25 @@ class TopicRepository extends Manager {
             . "lpa.id AS lpa_id, lpa.username AS lpa_username, lpa.avatar AS lpa_avatar "
             . "FROM forum_topic t "
             . "LEFT JOIN forum_post fp ON t.first_post_id = fp.id "
-            . "LEFT JOIN fos_user fpa ON fp.author_id = fpa.id "
+            . "LEFT JOIN user_account fpa ON fp.author_id = fpa.id "
             . "LEFT JOIN forum_post lp ON t.last_post_id = lp.id "
-            . "LEFT JOIN fos_user lpa ON lp.author_id = lpa.id "
+            . "LEFT JOIN user_account lpa ON lp.author_id = lpa.id "
             . "LEFT JOIN forum_post p ON t.id = p.topic_id "
-            . "LEFT JOIN fos_user pa ON p.author_id = pa.id "
+            . "LEFT JOIN user_account pa ON p.author_id = pa.id "
             . "LEFT JOIN forum_category c ON t.category_id = c.id "
             . "LEFT JOIN forum_category pc ON c.parent_id = pc.id "
-            . "LEFT JOIN fos_user ta ON t.author_id = ta.id "
-            . "WHERE t.slug = ? AND c.slug = ? AND pc.slug = ? "
+            . "LEFT JOIN user_account ta ON t.author_id = ta.id "
             . "%s";
-    const SQL_TOPICBYCAT = "SELECT t.id AS t_id, t.subject AS t_subject, t.slug AS t_slug, "
+    const SQL_TOPICBYCAT = "SELECT t.id AS t_id, t.subject AS t_subject, t.slug AS t_slug, t.num_posts AS t_num_posts, "
             . "t.created_at AS t_created_at, t.is_pinned AS t_is_pinned, t.is_buried AS t_is_buried, "
             . "ta.id AS ta_id, ta.username AS ta_username, ta.avatar AS ta_avatar, "
             . "tlp.id AS tlp_id, tlp.message AS tlp_message, tlp.createdat AS tlp_created_at, "
             . "tlpa.id AS tlpa_id, tlpa.username AS tlpa_username, tlpa.avatar AS tlpa_avatar "
             . "FROM forum_topic t "
             . "LEFT JOIN forum_category c ON t.category_id = c.id "
-            . "LEFT JOIN fos_user ta ON t.author_id = ta.id "
+            . "LEFT JOIN user_account ta ON t.author_id = ta.id "
             . "LEFT JOIN forum_post tlp ON t.last_post_id = tlp.id "
-            . "LEFT JOIN fos_user tlpa ON tlp.author_id = tlpa.id "
+            . "LEFT JOIN user_account tlpa ON tlp.author_id = tlpa.id "
             . "WHERE c.id = ? AND (t.is_buried IS NULL OR t.is_buried = false) "
             . "ORDER BY t.is_pinned DESC, CASE WHEN tlp.id IS NULL THEN t.created_at ELSE tlp.createdat END DESC "
             . "LIMIT ? OFFSET ?";
@@ -93,26 +92,21 @@ class TopicRepository extends Manager {
             . "is_closed = ?, is_pinned = ?, is_buried = ? "
             . "WHERE id = ?";
 
-    public static $strGetTopicQuery = "SELECT t, f, r, crr, cwr, c, p, fa, ra "
-            . "FROM IncolabForumBundle:Topic t LEFT JOIN t.firstPost f "
-            . "LEFT JOIN t.replies r LEFT JOIN t.category c LEFT JOIN c.parent p "
-            . "LEFT JOIN f.author fa LEFT JOIN r.author ra "
-            . "INNER JOIN c.readRoles crr INNER JOIN c.writeRoles cwr "
-            . "WHERE t.slug = :slugTopic AND c.slug = :slugCat AND p.slug = :slugParentCat "
-            . "ORDER BY r.createdAt ASC";
-
     public static function hydrateTopic($data = [], $key = "") {
         $topic = new Topic();
         $topic->setId($data[$key . "_id"])
                 ->setSubject($data[$key . "_subject"])
-                ->setSlug($data[$key . "_slug"])
-                ->setCreatedAt(\DateTime::createFromFormat("Y-m-d H:i:s", $data[$key . "_created_at"]));
+                ->setSlug($data[$key . "_slug"]);
+        if (isset($data[$key . "_num_posts"])) {
+            $topic->setNumPosts($data[$key . "_num_posts"]);
+        }
+        $topic->setCreatedAt(\DateTime::createFromFormat("Y-m-d H:i:s", $data[$key . "_created_at"]));
 
         return $topic;
     }
 
     public function getTopic($slugTopic, $slugCat, $slugParentCat, $page = 1, $maxResults = 10) {
-        $sql = sprintf(self::SQL_TOPIC, "LIMIT ? OFFSET ?");
+        $sql = sprintf(self::SQL_FIND, "WHERE t.slug = ? AND c.slug = ? AND pc.slug = ? LIMIT ? OFFSET ?");
         $stmt = $this->dbal->prepare($sql);
         $stmt->bindValue(1, $slugTopic, \PDO::PARAM_STR);
         $stmt->bindValue(2, $slugCat, \PDO::PARAM_STR);
@@ -176,20 +170,21 @@ class TopicRepository extends Manager {
         return $topics;
     }
 
-    public function getTopicBySlugTopicCatParentCat($slugTopic, $slugCat, $slugParentCat) {
-        $query = $this->_em->createQuery(self::$strGetTopicQuery)
-                ->setParameters(
-                array(
-                    ':slugTopic' => $slugTopic,
-                    ':slugCat' => $slugCat,
-                    ':slugParentCat' => $slugParentCat
-                )
-        );
+    public function slugExists(string $slug): bool {
+        $sql = "SELECT id FROM forum_topic WHERE slug = ?";
+        $stmt = $this->dbal->prepare($sql);
+        $stmt->bindValue(1, $slug, \PDO::PARAM_STR);
+        $stmt->execute();
+        $res = $stmt->fetch();
+        $stmt->closeCursor();
+        if (!$res) {
+            return false;
+        }
 
-        return $query->getOneOrNullResult();
+        return true;
     }
 
-    public function getNbTopicByCat(Category $category) {
+    public function getNbTopicByCat(Category $category): int {
         $stmt = $this->dbal->prepare(self::SQL_NBTOPICBYCAT);
         $stmt->bindValue(1, $category->getId(), \PDO::PARAM_INT);
         $stmt->execute();
@@ -197,6 +192,36 @@ class TopicRepository extends Manager {
         $stmt->closeCursor();
 
         return (int) $res["count"];
+    }
+
+    public function findLastOfCategory(Category $cat) {
+        $sql = sprintf(self::SQL_FIND, "WHERE c.id = ? ORDER BY t.id DESC LIMIT 1");
+        $stmt = $this->dbal->prepare($sql);
+        $stmt->bindValue(1, $cat->getId(), \PDO::PARAM_INT);
+        $stmt->execute();
+
+        $res = $stmt->fetch();
+        $stmt->closeCursor();
+        if (!$res) {
+            return null;
+        }
+
+        return self::hydrateTopic($res, "t");
+    }
+
+    public function findLastOfParentCategory(Category $cat) {
+        $sql = sprintf(self::SQL_FIND, "WHERE pc.id = ? ORDER BY t.id DESC LIMIT 1");
+        $stmt = $this->dbal->prepare($sql);
+        $stmt->bindValue(1, $cat->getId(), \PDO::PARAM_INT);
+        $stmt->execute();
+
+        $res = $stmt->fetch();
+        $stmt->closeCursor();
+        if (!$res) {
+            return null;
+        }
+
+        return self::hydrateTopic($res, "t");
     }
 
     public function persist(Topic $topic) {
@@ -276,7 +301,7 @@ class TopicRepository extends Manager {
         $stmt->execute();
         $stmt->closeCursor();
     }
-    
+
     public function create_database() {
         // will be moved
         $shemaCreate = new \Incolab\ForumBundle\Resources\SchemaDatabase\CreateShema($this->dbal);

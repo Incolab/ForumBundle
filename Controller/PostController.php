@@ -6,6 +6,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Incolab\ForumBundle\Entity\Post;
 use Incolab\ForumBundle\Form\Type\PostType;
+use Incolab\ForumBundle\IncolabForumEvents;
+use Incolab\ForumBundle\Event\PostEvent;
 
 class PostController extends Controller {
 
@@ -46,14 +48,14 @@ class PostController extends Controller {
         if ($post === null) {
             throw $this->createNotFoundException('This post don\'t exists.');
         }
-        
+
         $user = $this->getUser();
         if ($post->getAuthor()->getId() != $user->getId()) {
             throw $this->createAccessDeniedException("You aren't allowed to edit this post");
         }
-        
+
         if ($post->getTopic()->isBuried() || $post->getTopic()->isClosed()) {
-            throw $this->createAccessDeniedException('The topic\'s post is buried or closed');
+            throw $this->createAccessDeniedException('This topic is buried or closed');
         }
 
         $postForm = $this->createForm(PostType::class, $post);
@@ -62,41 +64,52 @@ class PostController extends Controller {
 
         if ($postForm->isSubmitted() && $postForm->isValid()) {
             $post->setUpdatedAt(new \DateTime());
+            $event = new PostEvent($post);
+            $this->get("event_dispatcher")->dispatch(IncolabForumEvents::ON_COMMENT_POST, $event);
+            if (!$event->isValid()) {
+                $this->addFlash('error', $event->getMessageStatus());
+                return $this->redirectToTopicByPost($post);
+            }
+
             $postRepository->persist($post);
-
             $this->addFlash('success', 'Your post has been edited.');
-
-            return $this->redirectToRoute(
-                            'incolab_forum_topic_show', array(
-                        'slugParentCat' => $post->getTopic()->getCategory()->getParent()->getSlug(),
-                        'slugCat' => $post->getTopic()->getCategory()->getSlug(),
-                        'slugTopic' => $post->getTopic()->getSlug()
-                            )
-            );
-        } else {
-            return $this->render(
-                            'IncolabForumBundle:Post:edit.html.twig', array('postForm' => $postForm->createView())
-            );
+            return $this->redirectToTopicByPost($post);
         }
+        return $this->render(
+                        'IncolabForumBundle:Post:edit.html.twig', array('postForm' => $postForm->createView())
+        );
+    }
+
+    private function redirectToTopicByPost(Post $post) {
+        return $this->redirectToRoute(
+                        'incolab_forum_topic_show', array(
+                    'slugParentCat' => $post->getTopic()->getCategory()->getParent()->getSlug(),
+                    'slugCat' => $post->getTopic()->getCategory()->getSlug(),
+                    'slugTopic' => $post->getTopic()->getSlug()
+                        )
+        );
     }
 
     public function permalinkAction($slugParentCat, $slugCat, $slugTopic, $postId) {
         $elmtsByPage = 10;
 
         $pagination["current"] = ceil($this->get("db")->getRepository("IncolabForumBundle:Post")
-                            ->getNbPostsUntilIdByTopicSlug($slugTopic, $postId) / $elmtsByPage);
-        
+                        ->getNbPostsUntilIdByTopicSlug($slugTopic, $postId) / $elmtsByPage);
+        if ($pagination["current"] < 1) {
+            $pagination["current"] = 1;
+        }
+
         $topic = $this->get("db")->getRepository('IncolabForumBundle:Topic')
                 ->getTopic($slugTopic, $slugCat, $slugParentCat, $pagination["current"], $elmtsByPage);
-        
+
         if ($topic === null) {
             throw $this->createNotFoundException('This topic don\'t exists');
         }
-        
+
         $pagination["nbPages"] = ceil($this->get("db")->getRepository("IncolabForumBundle:Post")
-                            ->getNbPostsByTopic($topic) / $elmtsByPage);
+                        ->getNbPostsByTopic($topic) / $elmtsByPage);
         $paramsRender["topic"] = $topic;
-        
+
         if ($pagination["nbPages"] > 1) {
             $paramsRender["pagination"] = $pagination;
         }
@@ -113,12 +126,13 @@ class PostController extends Controller {
         }
 
         $user = $this->getUser();
+        $userForumRoles = $this->get("db")->getRepository('IncolabForumBundle:ForumRole')->findByUser($user);
 
-        if (!$this->userCanRead($user->getForumRoles(), $topic->getCategory())) {
+        if (!$this->userCanRead($userForumRoles, $topic->getCategory())) {
             throw $this->createAccessDeniedException("Permission denied");
         }
 
-        if (!$this->userCanPost($user->getForumRoles(), $topic->getCategory())) {
+        if (!$this->userCanPost($userForumRoles, $topic->getCategory())) {
             return $this->render('IncolabForumBundle:Topic:show.html.twig', $paramsRender);
         }
 

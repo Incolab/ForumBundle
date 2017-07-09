@@ -72,7 +72,7 @@
                 <input type="submit" class="button" value="Submit"/>
                 {{ form_end(topicForm) }}
             {% elseif not is_granted('IS_AUTHENTICATED_FULLY') %}
-                <p>You have to be connected for add a topic. <a href="{{ path('fos_user_security_login') }}">Click here</a></p>
+                <p>You have to be connected for add a topic. <a href="{{ path('user_security_login') }}">Click here</a></p>
             {% else %}
                 <p>You can't post in this category</p>
             {% endif %}

@@ -122,6 +122,10 @@ class AdminController extends Controller {
         );
     }
 
+    public function categoryDeleteAction($slugCat) {
+        
+    }
+
     public function topicDeleteAction($slugParentCat, $slugCat, $slugTopic) {
         $topicRepository = $this->get("db")->getRepository("IncolabForumBundle:Topic");
         $topic = $topicRepository->getTopic($slugTopic, $slugCat, $slugParentCat);
@@ -139,21 +143,22 @@ class AdminController extends Controller {
 
         $parentCat->setNumPosts($parentCat->getNumPosts() - $nbposts);
         $parentCat->setNumTopics($parentCat->getNumTopics() - 1);
-        
+
         /*
          * FOREIGN KEY (topic_id) REFERENCES forum_topic(id) ON DELETE CASCADE
          * Donc on ne s'occupe pas des posts
          */
         $topicRepository->remove($topic);
-        
+
         if ($category->getLastTopic() && $category->getLastTopic()->getId() === $topic->getId()) {
             $newLastTopic = $topicRepository->findLastOfCategory($category);
             $category->setLastTopic($newLastTopic);
         }
         if ($parentCat->getLastTopic() && $parentCat->getLastTopic()->getId() === $topic->getId()) {
-            $parentCat->setLastTopic(null);
+            $newLastParentTopic = $topicRepository->findLastOfParentCategory($parentCat);
+            $parentCat->setLastTopic($newLastParentTopic);
         }
-        
+
         // on checke le lastpost
         $postRepository = $this->get("db")->getRepository('IncolabForumBundle:Post');
         $lastPostTopic = $topic->getLastPost();
@@ -164,10 +169,10 @@ class AdminController extends Controller {
         if ($parentCat->getLastPost() && $parentCat->getLastPost()->getId() === $lastPostTopic->getId()) {
             $parentCat->setLastPost(null);
         }
-        
+
         $this->get("incolab_forum.category_manager")->save($category);
         $this->get("incolab_forum.category_manager")->save($parentCat);
-        
+
         $this->addFlash("success", "The topic has been deleted");
 
         return $this->redirectToRoute('incolab_forum_admin_homepage');
@@ -180,7 +185,7 @@ class AdminController extends Controller {
         if ($post === null) {
             throw $this->createNotFoundException('This post don\'t exists.');
         }
-        dump($post);
+
         $topicRepository = $this->get("db")->getRepository('IncolabForumBundle:Topic');
         $topic = $topicRepository->getTopic($slugTopic, $slugCat, $slugParentCat);
         $category = $topic->getCategory();
@@ -192,9 +197,7 @@ class AdminController extends Controller {
         $this->get("incolab_forum.post_manager")->delete($post);
         if ($topic->getLastPost()->getId() === $post->getId()) {
             $newLastPost = $postRepository->findLastOfTopic($topic);
-            if ($newLastPost !== null) {
-                $topic->setLastPost($newLastPost);
-            }
+            $topic->setLastPost($newLastPost);
         }
 
         if ($category->getLastPost() && $category->getLastPost()->getId() === $post->getId()) {

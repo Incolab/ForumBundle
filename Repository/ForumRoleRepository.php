@@ -69,7 +69,7 @@ class ForumRoleRepository extends Manager {
         $sql = "SELECT ufr.user_id AS ufr_user_id, ufr.forum_role_id AS ufr_forum_role_id, "
                 . "fr.id AS fr_id, fr.name AS fr_name "
                 . "FROM forum_role fr "
-                . "LEFT JOIN fos_user_forum_roles ufr ON fr.id = ufr.forum_role_id "
+                . "LEFT JOIN user_forum_role ufr ON fr.id = ufr.forum_role_id "
                 . "WHERE ufr.user_id = ?";
         $stmt = $this->dbal->prepare($sql);
         $stmt->bindValue(1, $user->getId(), \PDO::PARAM_INT);
@@ -257,7 +257,7 @@ class ForumRoleRepository extends Manager {
     
     private function deleteUserRole($user_id, $role_id)
     {
-        $sql = "DELETE FROM fos_user_forum_roles WHERE user_id = ? AND forum_role_id = ?";
+        $sql = "DELETE FROM user_forum_role WHERE user_id = ? AND forum_role_id = ?";
         $stmt = $this->dbal->prepare($sql);
         $stmt->bindValue(1, $user_id, \PDO::PARAM_INT);
         $stmt->bindValue(2, $role_id, \PDO::PARAM_INT);
@@ -267,7 +267,7 @@ class ForumRoleRepository extends Manager {
     
     private function addUserRole($user_id, $role_id)
     {
-        $sql = "INSERT INTO fos_user_forum_roles (user_id, forum_role_id) "
+        $sql = "INSERT INTO user_forum_role (user_id, forum_role_id) "
                 . "VALUES (?,?)";
         $stmt = $this->dbal->prepare($sql);
         $stmt->bindValue(1, $user_id, \PDO::PARAM_INT);

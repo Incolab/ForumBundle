@@ -29,6 +29,12 @@ incolab_forum_admin_child_category_modify:
         slug: "[A-z0-9_-]+"
 #  methods: [POST]
 
+incolab_forum_admin_category_delete:
+    path: /categories/delete/{slugCat}
+    defaults: { _controller: IncolabForumBundle:Admin:categoryDelete }
+    requirements:
+        slugCat: "[A-z0-9_-]+"
+
 #Topics
 incolab_forum_admin_topic_delete:
     path: /categories/{slugParentCat}/{slugCat}/delete/{slugTopic}

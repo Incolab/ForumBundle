@@ -99,7 +99,7 @@ class CategoryRepository extends Manager {
             . "c.last_post_id AS c_last_post_id, c.name AS c_name, c.description AS c_description, c.slug AS c_slug, "
             . "c.position AS c_position, c.num_topics AS c_num_topics, c.num_posts AS c_num_posts, "
             . "clt.id AS clt_id, clt.subject AS clt_subject, clt.slug AS clt_slug, clt.created_at AS clt_created_at, "
-            . "clt.is_pinned AS clt_is_pinned, clt.is_buried AS clt_is_buried, "
+            . "clt.is_pinned AS clt_is_pinned, clt.is_buried AS clt_is_buried, clt.num_posts AS clt_num_posts, "
             . "clp.id AS clp_id, clp.topic_id AS clp_topic_id, clp.author_id AS clp_author_id, clp.message AS clp_message, "
             . "clp.createdat AS clp_created_at, clp.updatedat AS clp_updated_at, "
             . "crr.id AS crr_id, crr.name AS crr_name, "
@@ -107,7 +107,7 @@ class CategoryRepository extends Manager {
             . "p.id AS p_id, p.parent_id AS p_parent_id, p.last_topic_id AS p_last_topic_id, p.last_post_id AS p_last_post_id, p.name AS p_name, "
             . "p.description AS p_description, p.slug AS p_slug, p.position AS p_position, p.num_topics AS p_num_topics, p.num_posts AS p_num_posts, "
             . "plt.id AS plt_id, plt.subject AS plt_subject, plt.slug AS plt_slug, plt.created_at AS plt_created_at, "
-            . "plt.is_pinned AS plt_is_pinned, plt.is_buried AS plt_is_buried, "
+            . "plt.is_pinned AS plt_is_pinned, plt.is_buried AS plt_is_buried, plt.num_posts AS plt_num_posts, "
             . "plp.id AS plp_id, plp.topic_id AS plp_topic_id, plp.author_id AS plp_author_id, plp.message AS plp_message, "
             . "plp.createdat AS plp_created_at, plp.updatedat AS plp_updated_at, "
             . "prr.id AS prr_id, prr.name AS prr_name, "
@@ -534,6 +534,14 @@ class CategoryRepository extends Manager {
         $stmt->closeCursor();
 
         return $category;
+    }
+    
+    public function delete(Category $category) {
+        $sql = "DELETE FROM forum_category WHERE id = ?";
+        $stmt = $this->dbal->prepare($sql);
+        $stmt->bindValue(1, $category->getId(), \PDO::PARAM_INT);
+        $stmt->execute();
+        $stmt->closeCursor();
     }
     
     public function create_database() {
