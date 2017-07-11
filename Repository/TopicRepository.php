@@ -106,7 +106,7 @@ class TopicRepository extends Manager {
     }
 
     public function getTopic($slugTopic, $slugCat, $slugParentCat, $page = 1, $maxResults = 10) {
-        $sql = sprintf(self::SQL_FIND, "WHERE t.slug = ? AND c.slug = ? AND pc.slug = ? LIMIT ? OFFSET ?");
+        $sql = sprintf(self::SQL_FIND, "WHERE t.slug = ? AND c.slug = ? AND pc.slug = ? ORDER BY p.id ASC LIMIT ? OFFSET ?");
         $stmt = $this->dbal->prepare($sql);
         $stmt->bindValue(1, $slugTopic, \PDO::PARAM_STR);
         $stmt->bindValue(2, $slugCat, \PDO::PARAM_STR);
