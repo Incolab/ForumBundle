@@ -33,8 +33,7 @@ class PostType extends AbstractType
                     },
                     // Before persist
                     function ($submittedContent) {
-                        $submittedContent = htmlspecialchars($submittedContent, ENT_QUOTES, "UTF-8");
-                        $parser = new \Incolab\ForumBundle\BBCodeParser\BBCodeParser();
+                        $parser = new \Incolab\CoreBundle\BBCodeParser\BBCodeParser();
                         return $parser->parse($submittedContent);
                     }
                 )

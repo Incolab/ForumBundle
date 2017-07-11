@@ -63,7 +63,7 @@ class TopicRepository extends Manager {
             . "LEFT JOIN user_account fpa ON fp.author_id = fpa.id "
             . "LEFT JOIN forum_post lp ON t.last_post_id = lp.id "
             . "LEFT JOIN user_account lpa ON lp.author_id = lpa.id "
-            . "LEFT JOIN forum_post p ON t.id = p.topic_id "
+            . "LEFT JOIN forum_post p ON t.id = CASE WHEN p.id != fp.id THEN p.topic_id ELSE NULL END "
             . "LEFT JOIN user_account pa ON p.author_id = pa.id "
             . "LEFT JOIN forum_category c ON t.category_id = c.id "
             . "LEFT JOIN forum_category pc ON c.parent_id = pc.id "

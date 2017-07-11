@@ -40,7 +40,6 @@
         </div>
     </div>
         {% for element in topic.replies %}
-            {% if element.id != topic.firstPost.id %}
                 {% if loop.index == 2 %}
     <div class="large-12 columns">
         <div class="panelCat">
@@ -74,7 +73,6 @@
         </div>
     </div>
                 {% endif %}
-            {% endif %}
         {% endfor %}
     <div>
         {% if pagination is defined %}

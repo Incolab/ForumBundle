@@ -132,8 +132,9 @@ class CategoryController extends Controller {
         $paramsRender['topic'] = $topic;
 
         $pagination = [
-            "nbPages" => ceil($this->get("db")->getRepository("IncolabForumBundle:Post")
-                            ->getNbPostsByTopic($topic) / $elmtsByPage),
+            // compute post's numbers of topic - 1 (the firstpost)
+            "nbPages" => ceil(($this->get("db")->getRepository("IncolabForumBundle:Post")
+                            ->getNbPostsByTopic($topic) - 1) / $elmtsByPage),
             "current" => $page
         ];
 

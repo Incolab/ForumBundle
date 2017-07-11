@@ -78,7 +78,7 @@ class PostRepository extends Manager {
             return null;
         }
         $post = self::hydratePost($res, "p");
-        $post->setAuthor(UserRepository::lightHydrateUser($res, "a"));
+        $post->setAuthor(UserRepository::lightHydrateUser($res, "u"));
         $topicRepository = new TopicRepository($this->dbal);
         $topic = $topicRepository->getTopic($slugTopic, $slugCat, $slugParentCat);
         $post->setTopic($topic);
