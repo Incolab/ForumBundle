@@ -50,7 +50,7 @@ class PostController extends Controller {
         }
 
         $user = $this->getUser();
-        if ($post->getAuthor()->getId() != $user->getId()) {
+        if ($post->getAuthor()->getId() != $user->getId() && !$this->get('security.authorization_checker')->isGranted('ROLE_ADMIN')) {
             throw $this->createAccessDeniedException("You aren't allowed to edit this post");
         }
 
