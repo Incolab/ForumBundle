@@ -105,9 +105,10 @@ class PostController extends Controller {
         if ($topic === null) {
             throw $this->createNotFoundException('This topic don\'t exists');
         }
-
-        $pagination["nbPages"] = ceil($this->get("db")->getRepository("IncolabForumBundle:Post")
-                        ->getNbPostsByTopic($topic) / $elmtsByPage);
+        
+        // compute post's numbers of topic - 1 (the firstpost)
+        $pagination["nbPages"] = ceil(($this->get("db")->getRepository("IncolabForumBundle:Post")
+                        ->getNbPostsByTopic($topic) - 1) / $elmtsByPage);
         $paramsRender["topic"] = $topic;
 
         if ($pagination["nbPages"] > 1) {
