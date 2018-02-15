@@ -7,7 +7,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 class DefaultController extends Controller {
 
     public function indexAction() {
-        if (!$this->get('security.authorization_checker')->isGranted('IS_AUTHENTICATED_FULLY')) {
+        if (!$this->get('security.authorization_checker')->isGranted('IS_AUTHENTICATED_REMEMBERED')) {
 
             $readRoles[] = $this->get("db")->getRepository('IncolabForumBundle:ForumRole')->findByName('ROLE_PUBLIC');
 

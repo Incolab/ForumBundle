@@ -7,7 +7,7 @@
         </div>
         <div class="large-6 columns">
             <h2 class="text-center">Votre message</h2>
-            {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+            {% if is_granted('IS_AUTHENTICATED_REMEMBERED') %}
                 {{ form_start(postForm) }}
                 {{ form_widget(postForm) }}
                 <input type="submit" class="button" value="Submit" />
@@ -21,7 +21,7 @@
 {% endblock %}
 
 {% block javascripts %}
-    {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+    {% if is_granted('IS_AUTHENTICATED_REMEMBERED') %}
         <script src="/bundles/incolabcore/ckeditor/light/ckeditor.js"></script>
         <script>CKEDITOR.replace( 'post_message' );</script>
     {% endif %}

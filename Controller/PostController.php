@@ -38,7 +38,7 @@ class PostController extends Controller {
     }
 
     public function postEditAction($slugParentCat, $slugCat, $slugTopic, $postId, Request $request) {
-        if (!$this->get('security.authorization_checker')->isGranted('IS_AUTHENTICATED_FULLY')) {
+        if (!$this->get('security.authorization_checker')->isGranted('IS_AUTHENTICATED_REMEMBERED')) {
             throw $this->createAccessDeniedException();
         }
 
@@ -115,7 +115,7 @@ class PostController extends Controller {
             $paramsRender["pagination"] = $pagination;
         }
 
-        if (!$this->get('security.authorization_checker')->isGranted('IS_AUTHENTICATED_FULLY')) {
+        if (!$this->get('security.authorization_checker')->isGranted('IS_AUTHENTICATED_REMEMBERED')) {
             $role = $this->get("db")
                             ->getRepository('IncolabForumBundle:ForumRole')->findByName('ROLE_PUBLIC');
 

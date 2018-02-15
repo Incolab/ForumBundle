@@ -58,7 +58,7 @@
                         {% endif %}
                     </p>
                     <p>{{ element.message|raw }}</p>
-                    {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+                    {% if is_granted('IS_AUTHENTICATED_REMEMBERED') %}
                         {% if app.user.username == element.author.username %}
                     <p><a class="button" href="{{ path('incolab_forum_post_edit', {slugParentCat: topic.category.parent.slug, slugCat: topic.category.slug, slugTopic: topic.slug, postId: element.id}) }}">Edit</a></p>
                         {% endif %}
@@ -90,12 +90,12 @@
     <div class="large-12 columns">
         <div class="panelCat">
             <h3 class="text-center">Add a reply</h3>
-            {% if is_granted('IS_AUTHENTICATED_FULLY') and postForm is defined %}
+            {% if is_granted('IS_AUTHENTICATED_REMEMBERED') and postForm is defined %}
                 {{ form_start(postForm) }}
                 {{ form_widget(postForm) }}
                 <input type="submit" class="button" value="Submit"/>
                 {{ form_end(postForm) }}
-            {% elseif not is_granted('IS_AUTHENTICATED_FULLY') %}
+            {% elseif not is_granted('IS_AUTHENTICATED_REMEMBERED') %}
                 <p>You have to be connected for add a post. <a href="{{ path('user_security_login') }}">Click here</a></p>
             {% else %}
                 <p>You can't post in this topic</p>
@@ -105,7 +105,7 @@
 {% endblock %}
 
 {% block javascripts %}
-    {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+    {% if is_granted('IS_AUTHENTICATED_REMEMBERED') %}
         <script src="/bundles/incolabcore/ckeditor/light/ckeditor.js"></script>
         <script>CKEDITOR.replace( 'post_message' );</script>
     {% endif %}

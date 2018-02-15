@@ -16,7 +16,7 @@ class CategoryController extends Controller {
 
     public function parentCategoryAction($slugParentCat) {
         $readRoles = [];
-        if ($this->get('security.authorization_checker')->isGranted('IS_AUTHENTICATED_FULLY')) {
+        if ($this->get('security.authorization_checker')->isGranted('IS_AUTHENTICATED_REMEMBERED')) {
             $user = $this->get('security.token_storage')->getToken()->getUser();
             $readRoles = $this->get("db")->getRepository('IncolabForumBundle:ForumRole')->findByUser($user);
         }
@@ -70,7 +70,7 @@ class CategoryController extends Controller {
             $paramsRender["pagination"] = $pagination;
         }
 
-        if (!$this->get('security.authorization_checker')->isGranted('IS_AUTHENTICATED_FULLY')) {
+        if (!$this->get('security.authorization_checker')->isGranted('IS_AUTHENTICATED_REMEMBERED')) {
             $role = $this->get("db")
                             ->getRepository('IncolabForumBundle:ForumRole')->findByName('ROLE_PUBLIC');
 
@@ -143,7 +143,7 @@ class CategoryController extends Controller {
         }
 
 
-        if (!$this->get('security.authorization_checker')->isGranted('IS_AUTHENTICATED_FULLY')) {
+        if (!$this->get('security.authorization_checker')->isGranted('IS_AUTHENTICATED_REMEMBERED')) {
             $role = $this->get("db")
                             ->getRepository('IncolabForumBundle:ForumRole')->findByName('ROLE_PUBLIC');
 
@@ -210,7 +210,7 @@ class CategoryController extends Controller {
     }
 
     public function topicNewAction($slugParentCat, $slugCat) {
-        if (!$this->get('security.authorization_checker')->isGranted('IS_AUTHENTICATED_FULLY')) {
+        if (!$this->get('security.authorization_checker')->isGranted('IS_AUTHENTICATED_REMEMBERED')) {
             throw $this->createAccessDeniedException();
         }
 
@@ -238,7 +238,7 @@ class CategoryController extends Controller {
     }
 
     public function topicCreateAction($slugParentCat, $slugCat, Request $request) {
-        if (!$this->get('security.authorization_checker')->isGranted('IS_AUTHENTICATED_FULLY')) {
+        if (!$this->get('security.authorization_checker')->isGranted('IS_AUTHENTICATED_REMEMBERED')) {
             throw $this->createAccessDeniedException();
         }
 
@@ -306,7 +306,7 @@ class CategoryController extends Controller {
     }
 
     public function postAddAction($slugParentCat, $slugCat, $slugTopic, Request $request) {
-        if (!$this->get('security.authorization_checker')->isGranted('IS_AUTHENTICATED_FULLY')) {
+        if (!$this->get('security.authorization_checker')->isGranted('IS_AUTHENTICATED_REMEMBERED')) {
             throw $this->createAccessDeniedException();
         }
 
